@@ -1,5 +1,3 @@
-import request from "superagent";
-
 export class SessionObject {
    constructor( jSess ) {
       this.Id = jSess.Id;
