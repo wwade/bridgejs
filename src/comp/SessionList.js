@@ -56,13 +56,13 @@ class SessionList extends Component {
       return (
          <SelectableList
              onChange={this.handleChange}
-             defaultValue={this.props.sessions.length ? this.props.sessions[0].Id : 0} >
+             defaultValue={12} >
             <Subheader>Session List</Subheader>
-            {this.props.sessions.map( s => {
+            {this.props.sessions.map( (s, index) => {
              return (
                 React.Children.toArray([
                    <Divider />,
-                   <ListItem key={s.Id} value={s.Id} primaryText={s.Name} secondaryText={s.dateString()} />
+                   <ListItem key={index} value={index} primaryText={s.Name} secondaryText={s.dateString()} />
                 ])
              )
             })}
@@ -71,12 +71,6 @@ class SessionList extends Component {
    }
 }
 
-const SessionHeader = (props) => (
-   <div>
-      Selection: {props.selected}
-   </div>
-);
-
 class SessionListContainer extends Component {
    state = {
       sessions: [],
@@ -84,8 +78,10 @@ class SessionListContainer extends Component {
       error: null,
    };
 
-   setSelected = (sessionId) => {
-      this.setState( { selected: sessionId } );
+   setSelected = (index) => {
+      let selected = this.state.sessions[index];
+      this.setState( { selected: selected} );
+      this.props.onSelection( selected );
    }
 
    loadSessions() {
@@ -109,12 +105,11 @@ class SessionListContainer extends Component {
 
    render() {
       if ( this.state.error ) {
-         return <p>{this.state.error}</p>;
+         return <p>{this.state.error}</p>
       } else {
          return (
             <div>
-            <SessionHeader selected={this.state.selected} />
-            <SessionList sessions={this.state.sessions} setSelected={this.setSelected}/>;
+            <SessionList sessions={this.state.sessions} setSelected={this.setSelected}/>
             </div>
          );
       }
