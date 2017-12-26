@@ -1,21 +1,22 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
+import React from 'react';
 import './App.css';
+import AppBar from './ui/AppBar';
+import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import getMuiTheme from 'material-ui/styles/getMuiTheme';
+import SessionListContainer from "./comp/SessionList";
 
-class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
-      </div>
-    );
-  }
-}
+const AppMain = () => (
+   <div>
+   <AppBar title="Bridge Scores" />
+   <SessionListContainer />
+   </div>
+);
+
+const App = () => (
+   <MuiThemeProvider muiTheme={getMuiTheme(lightBaseTheme)}>
+   <AppMain />
+   </MuiThemeProvider>
+);
 
 export default App;
