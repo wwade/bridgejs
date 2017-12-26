@@ -61,28 +61,38 @@ class SessionObject {
 
 class SessionList extends Component {
    render() {
+      const len = this.props.sessions.length;
+      let items = [];
+      for (let i = 0; i < len; ++i ) {
+         let s = this.props.sessions[i];
+         items.push( <Divider /> );
+         items.push( <ListItem key={s.Id} value={s.Id} primaryText={s.Name} secondaryText={s.dateString()} /> );
+      }
       return (
          <SelectableList defaultValue={this.props.sessions.length ? this.props.sessions[0].Id : 0} >
             <Subheader>Session List</Subheader>
+            {items}
          </SelectableList>
-            //{ this.props.sessions.map( s =>
-            //   <ListItem
-            //      key={s.Id}
-            //      value={s.Id}
-            //      primaryText={s.Name}
-            //      secondaryText={s.dateString()}
-            //   />
-            //   <Divider />
-            //  )}
       );
    }
 }
 
+const SessionHeader = (props) => (
+   <div>
+      Selection: {props.selected}
+   </div>
+);
+
 class SessionListContainer extends Component {
    state = {
       sessions: [],
+      selected: null,
       error: null,
    };
+
+   setSelected(sessionObj) {
+      this.setState( { selected: sessionObj } );
+   }
 
    loadSessions() {
       request.get("http://192.168.0.16/sessions").end((err, res) => {
@@ -107,7 +117,12 @@ class SessionListContainer extends Component {
       if ( this.state.error ) {
          return <p>{this.state.error}</p>;
       } else {
-         return <SessionList sessions={this.state.sessions} />;
+         return (
+            <div>
+            <SessionHeader selected={this.state.selected} />
+            <SessionList sessions={this.state.sessions} handleSelected={this.setSelected}/>;
+            </div>
+         );
       }
    }
 }
