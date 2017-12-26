@@ -64,7 +64,7 @@ class SessionList extends Component {
                    <Divider />,
                    <ListItem key={index} value={index} primaryText={s.Name} secondaryText={s.dateString()} />
                 ])
-             )
+             );
             })}
          </SelectableList>
       );
@@ -95,6 +95,7 @@ class SessionListContainer extends Component {
                   .map( s => (new SessionObject(s)))
                   .sort((a, b) => {return a.compare(b);});
             this.setState( { sessions: sessions, error: null } );
+            this.setSelected( 0 );
          }
       });
    }
