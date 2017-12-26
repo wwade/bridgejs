@@ -4,6 +4,7 @@ import request from "superagent";
 import {List, ListItem, makeSelectable} from 'material-ui/List';
 import Subheader from 'material-ui/Subheader';
 import Divider from 'material-ui/Divider';
+import { SessionObject } from '../model/Data';
 
 let SelectableList = makeSelectable(List);
 
@@ -24,6 +25,9 @@ function wrapState(ComposedComponent) {
          this.setState({
             selectedIndex: index,
          });
+         if ( this.props.onChange ) {
+            this.props.onChange( event, index );
+         }
       };
 
       render() {
@@ -41,37 +45,27 @@ function wrapState(ComposedComponent) {
 
 SelectableList = wrapState(SelectableList);
 
-class SessionObject {
-   constructor( jSess ) {
-      this.Id = jSess.Id;
-      this.Timestamp = jSess.Timestamp;
-      this.Name = jSess.Name;
-      this.date = new Date( this.Timestamp );
-   }
-
-   compare(other) {
-      return other.Timestamp - this.Timestamp;
-   }
-
-   dateString() {
-      let date = new Date( this.Timestamp );
-      return date.toUTCString()
-   }
-}
-
 class SessionList extends Component {
-   render() {
-      const len = this.props.sessions.length;
-      let items = [];
-      for (let i = 0; i < len; ++i ) {
-         let s = this.props.sessions[i];
-         items.push( <Divider /> );
-         items.push( <ListItem key={s.Id} value={s.Id} primaryText={s.Name} secondaryText={s.dateString()} /> );
+   handleChange = ( event, index ) => {
+      if ( this.props.setSelected ) {
+         this.props.setSelected( index );
       }
+   };
+
+   render() {
       return (
-         <SelectableList defaultValue={this.props.sessions.length ? this.props.sessions[0].Id : 0} >
+         <SelectableList
+             onChange={this.handleChange}
+             defaultValue={this.props.sessions.length ? this.props.sessions[0].Id : 0} >
             <Subheader>Session List</Subheader>
-            {items}
+            {this.props.sessions.map( s => {
+             return (
+                React.Children.toArray([
+                   <Divider />,
+                   <ListItem key={s.Id} value={s.Id} primaryText={s.Name} secondaryText={s.dateString()} />
+                ])
+             )
+            })}
          </SelectableList>
       );
    }
@@ -90,8 +84,8 @@ class SessionListContainer extends Component {
       error: null,
    };
 
-   setSelected(sessionObj) {
-      this.setState( { selected: sessionObj } );
+   setSelected = (sessionId) => {
+      this.setState( { selected: sessionId } );
    }
 
    loadSessions() {
@@ -120,7 +114,7 @@ class SessionListContainer extends Component {
          return (
             <div>
             <SessionHeader selected={this.state.selected} />
-            <SessionList sessions={this.state.sessions} handleSelected={this.setSelected}/>;
+            <SessionList sessions={this.state.sessions} setSelected={this.setSelected}/>;
             </div>
          );
       }
