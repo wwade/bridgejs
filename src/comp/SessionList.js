@@ -1,10 +1,11 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import request from "superagent";
-import {List, ListItem, makeSelectable} from 'material-ui/List';
-import Subheader from 'material-ui/Subheader';
-import Divider from 'material-ui/Divider';
-import { SessionObject } from '../model/Data';
+import React, { Component } from "react";
+import PropTypes from "prop-types";
+import {List, ListItem, makeSelectable} from "material-ui/List";
+import Subheader from "material-ui/Subheader";
+import Divider from "material-ui/Divider";
+import { SessionObject } from "../model/Data";
+import { getSessions } from "../api";
+import {Card, CardTitle} from "material-ui/Card";
 
 let SelectableList = makeSelectable(List);
 
@@ -12,7 +13,8 @@ function wrapState(ComposedComponent) {
    return class SelectableList extends Component {
       static propTypes = {
          children: PropTypes.node.isRequired,
-         defaultValue: PropTypes.number.isRequired
+         defaultValue: PropTypes.number.isRequired,
+         onChange: PropTypes.func
       };
 
       componentWillMount() {
@@ -46,6 +48,10 @@ function wrapState(ComposedComponent) {
 SelectableList = wrapState(SelectableList);
 
 class SessionList extends Component {
+   static propTypes={
+      setSelected: PropTypes.func,
+   };
+
    handleChange = ( event, index ) => {
       if ( this.props.setSelected ) {
          this.props.setSelected( index );
@@ -53,21 +59,29 @@ class SessionList extends Component {
    };
 
    render() {
-      return (
-         <SelectableList
-             onChange={this.handleChange}
-             defaultValue={12} >
-            <Subheader>Session List</Subheader>
-            {this.props.sessions.map( (s, index) => {
-             return (
-                React.Children.toArray([
-                   <Divider />,
-                   <ListItem key={index} value={index} primaryText={s.Name} secondaryText={s.dateString()} />
-                ])
-             );
-            })}
-         </SelectableList>
-      );
+      if (this.props.sessions) {
+         return (
+            <SelectableList
+                onChange={this.handleChange}
+                defaultValue={this.props.defaultValue} >
+               <Subheader>Session List</Subheader>
+               {this.props.sessions.map( (s, index) => {
+                  return (
+                   React.Children.toArray([
+                      <Divider />,
+                      <ListItem key={index} value={index} primaryText={s.Name} secondaryText={s.dateString()} />
+                   ])
+                  );
+               })}
+            </SelectableList>
+         );
+      } else {
+         return (
+            <Card>
+               <CardTitle title="No sessions" />
+            </Card>
+         );
+      }
    }
 }
 
@@ -75,7 +89,6 @@ class SessionListContainer extends Component {
    state = {
       sessions: [],
       selected: null,
-      error: null,
    };
 
    setSelected = (index) => {
@@ -85,9 +98,10 @@ class SessionListContainer extends Component {
    }
 
    loadSessions() {
-      request.get("http://192.168.0.16/sessions").end((err, res) => {
+      getSessions().end((err, res) => {
          if ( err ) {
-            this.setState( { sessions: [], error: err.message } );
+            alert( err.message );
+            this.setState( { sessions: [] } );
          } else {
             let sessions =
                Array
@@ -106,11 +120,11 @@ class SessionListContainer extends Component {
 
    render() {
       if ( this.state.error ) {
-         return <p>{this.state.error}</p>
+         return <p>{this.state.error}</p>;
       } else {
          return (
             <div>
-            <SessionList sessions={this.state.sessions} setSelected={this.setSelected}/>
+            <SessionList sessions={this.state.sessions} defaultValue={0} setSelected={this.setSelected}/>
             </div>
          );
       }

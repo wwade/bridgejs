@@ -1,16 +1,21 @@
-import React, { Component } from 'react';
-import './App.css';
-import AppBar from './ui/AppBar';
-import Drawer from 'material-ui/Drawer';
-import {Card, CardText, CardTitle} from 'material-ui/Card';
-import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import getMuiTheme from 'material-ui/styles/getMuiTheme';
+import React, { Component } from "react";
+import "./App.css";
+import AppBar from "./ui/AppBar";
+import Drawer from "material-ui/Drawer";
+import {Card, CardText, CardTitle} from "material-ui/Card";
+import lightBaseTheme from "material-ui/styles/baseThemes/lightBaseTheme";
+import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
+import getMuiTheme from "material-ui/styles/getMuiTheme";
 import SessionListContainer from "./comp/SessionList";
-import request from "superagent";
-import {List, ListItem} from 'material-ui/List';
+import {List, ListItem} from "material-ui/List";
+import {getBoards} from "./api";
+import PropTypes from "prop-types";
 
 class SessionBoards extends Component {
+   static propTypes = {
+      boards: PropTypes.array
+   };
+
    render() {
       if (!this.props.boards) {
          return "";
@@ -21,7 +26,7 @@ class SessionBoards extends Component {
                return (
                   <ListItem key={index} value={index} primaryText={b.Team} />
                );
-             })}
+            })}
             </List>
          );
       }
@@ -32,12 +37,20 @@ class SessionBoardsContainer extends Component {
    state = {
       boards: null,
       sessionId: null
-   }
+   };
+
+   static propTypes = {
+      session: PropTypes.object.isRequired,
+   };
 
    loadBoards(sessionId) {
       this.setState({sessionId: sessionId});
-      request.get("http://192.168.0.16/boards?sessionId=" + sessionId).end((err, res) => {
-         this.setState({boards: res.body.BoardSets});
+      getBoards(sessionId).end((err, res) => {
+         if ( err ) {
+            alert( err.message );
+         } else {
+            this.setState({boards: res.body.BoardSets});
+         }
       });
    }
 
@@ -53,11 +66,15 @@ class SessionBoardsContainer extends Component {
    }
 
    render() {
-      return <SessionBoards boards={this.state.boards} />
+      return <SessionBoards boards={this.state.boards} />;
    }
 }
 
 class SessionCard extends Component {
+   static propTypes = {
+      session: PropTypes.object.isRequired,
+   };
+
    render() {
       if ( this.props.session ) {
          return (
@@ -70,14 +87,18 @@ class SessionCard extends Component {
          </Card>
          );
       } else {
-         return "Select a session";
+         return (
+         <Card>
+            <CardTitle title="No session selected" />
+         </Card>
+         );
       }
    }
 }
 
 class AppMain extends Component {
    state = {
-      open: true,
+      open: false,
       session: null,
    };
 

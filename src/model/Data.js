@@ -1,3 +1,5 @@
+import moment from "moment";
+
 export class SessionObject {
    constructor( jSess ) {
       this.Id = jSess.Id;
@@ -11,7 +13,8 @@ export class SessionObject {
    }
 
    dateString() {
-      let date = new Date( this.Timestamp );
-      return date.toUTCString()
+      let offset = moment().utcOffset() * 60 * 1000;
+      let date = moment( this.Timestamp - offset );
+      return date.fromNow();
    }
 }
