@@ -1,6 +1,8 @@
 import { Card, CardText, CardTitle } from "material-ui/Card";
 import { Component } from "react";
+import { HashRouter, Route } from "react-router-dom";
 import { List, ListItem } from "material-ui/List";
+import { SessionObject } from "./model/Data";
 import { getBoards } from "./api";
 import AppBar from "./ui/AppBar";
 import Drawer from "material-ui/Drawer";
@@ -88,22 +90,43 @@ class SessionCard extends Component {
             </Card>
          );
       } else {
-         return (
-            <Card>
-               <CardTitle title="No session selected" />
-            </Card>
-         );
+         return <Card />;
       }
+   }
+}
+
+class SessionCardContainer extends Component {
+   static propTypes = {
+      session: PropTypes.instanceOf(SessionObject),
+      sessions: PropTypes.instanceOf(Map),
+      match: PropTypes.object
+   };
+
+   render() {
+      let session;
+      if (this.props.sessions && this.props.match.params.sessionId) {
+         let sessionId = Number(this.props.match.params.sessionId);
+         session = this.props.sessions.get(sessionId);
+      } else {
+         session = this.props.session;
+      }
+      return <SessionCard session={session} />;
    }
 }
 
 class AppMain extends Component {
    state = {
       open: false,
-      session: null
+      session: null,
+      sessions: null
    };
 
    onLeft = () => this.setState({ open: !this.state.open });
+
+   onSessions = sessionArray => {
+      let sessionMap = new Map(sessionArray.map(s => [s.Id, s]));
+      this.setState({ sessions: sessionMap });
+   };
 
    onSelection = sessionObj => {
       this.setState({ open: false, session: sessionObj });
@@ -111,17 +134,40 @@ class AppMain extends Component {
 
    render() {
       return (
-         <div>
-            <AppBar onLeft={this.onLeft} title="Bridge Scores" />
-            <Drawer
-               docked={false}
-               open={this.state.open}
-               onRequestChange={open => this.setState({ open })}
-            >
-               <SessionListContainer onSelection={this.onSelection} />
-            </Drawer>
-            <SessionCard session={this.state.session} />
-         </div>
+         <HashRouter>
+            <div>
+               <AppBar onLeft={this.onLeft} title="Bridge Scores" />
+               <Drawer
+                  docked={false}
+                  open={this.state.open}
+                  onRequestChange={open => this.setState({ open })}
+               >
+                  <SessionListContainer
+                     onSessions={this.onSessions}
+                     onSelection={this.onSelection}
+                  />
+               </Drawer>
+               <Route
+                  path="/session/:sessionId"
+                  render={routeProps => (
+                     <SessionCardContainer
+                        {...routeProps}
+                        sessions={this.state.sessions}
+                     />
+                  )}
+               />
+               <Route
+                  exact
+                  path="/"
+                  render={routeProps => (
+                     <SessionCardContainer
+                        {...routeProps}
+                        session={this.state.session}
+                     />
+                  )}
+               />
+            </div>
+         </HashRouter>
       );
    }
 }

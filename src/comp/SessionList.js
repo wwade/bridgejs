@@ -1,4 +1,5 @@
 import { Card, CardTitle } from "material-ui/Card";
+import { Link, Route } from "react-router-dom";
 import { List, ListItem, makeSelectable } from "material-ui/List";
 import React, { Component } from "react";
 import { SessionObject } from "../model/Data";
@@ -13,7 +14,7 @@ function wrapState(ComposedComponent) {
    return class SelectableList extends Component {
       static propTypes = {
          children: PropTypes.node.isRequired,
-         defaultValue: PropTypes.number.isRequired,
+         defaultValue: PropTypes.number,
          onChange: PropTypes.func
       };
 
@@ -21,6 +22,14 @@ function wrapState(ComposedComponent) {
          this.setState({
             selectedIndex: this.props.defaultValue
          });
+      }
+
+      componentWillReceiveProps(nextProps) {
+         let cur = this.props.defaultValue;
+         let next = nextProps.defaultValue;
+         if (cur !== next) {
+            this.setState({ selectedIndex: next });
+         }
       }
 
       handleRequestChange = (event, index) => {
@@ -69,13 +78,15 @@ class SessionList extends Component {
             >
                <Subheader>Session List</Subheader>
                {this.props.sessions.map((s, index) => {
+                  let uri = "/session/" + s.Id;
                   return React.Children.toArray([
-                     <Divider key={index} />,
+                     <Divider key={s.Id} />,
                      <ListItem
-                        key={index}
-                        value={index}
+                        key={s.Id}
+                        value={s.Id}
                         primaryText={s.Name}
                         secondaryText={s.dateString()}
+                        containerElement={<Link to={uri} replace />}
                      />
                   ]);
                })}
@@ -91,6 +102,31 @@ class SessionList extends Component {
    }
 }
 
+class SessionListRoute extends Component {
+   static propTypes = {
+      match: PropTypes.object.isRequired,
+      sessions: PropTypes.array.isRequired,
+      setSelected: PropTypes.func.isRequired
+   };
+
+   render() {
+      let first = this.props.sessions.length ? this.props.sessions[0].Id : null;
+      let defaultValue;
+      if (this.props.match.params.sessionId) {
+         defaultValue = Number(this.props.match.params.sessionId);
+      } else {
+         defaultValue = first;
+      }
+      return (
+         <SessionList
+            sessions={this.props.sessions}
+            defaultValue={defaultValue}
+            setSelected={this.props.setSelected}
+         />
+      );
+   }
+}
+
 class SessionListContainer extends Component {
    state = {
       sessions: [],
@@ -98,7 +134,8 @@ class SessionListContainer extends Component {
    };
 
    static propTypes = {
-      onSelection: PropTypes.func.isRequired
+      onSelection: PropTypes.func.isRequired,
+      onSessions: PropTypes.func.isRequired
    };
 
    setSelected = index => {
@@ -109,11 +146,12 @@ class SessionListContainer extends Component {
 
    loadSessions() {
       getSessions().end((err, res) => {
+         let sessions;
          if (err) {
             alert(err.message);
-            this.setState({ sessions: [] });
+            sessions = [];
          } else {
-            let sessions = Array.from(res.body.Sessions)
+            sessions = Array.from(res.body.Sessions)
                .map(s => new SessionObject(s))
                .sort((a, b) => {
                   return a.compare(b);
@@ -121,6 +159,8 @@ class SessionListContainer extends Component {
             this.setState({ sessions: sessions, error: null });
             this.setSelected(0);
          }
+         this.setState({ sessions: sessions });
+         this.props.onSessions(sessions);
       });
    }
 
@@ -134,10 +174,26 @@ class SessionListContainer extends Component {
       } else {
          return (
             <div>
-               <SessionList
-                  sessions={this.state.sessions}
-                  defaultValue={0}
-                  setSelected={this.setSelected}
+               <Route
+                  exact
+                  path="/"
+                  render={routeProps => (
+                     <SessionListRoute
+                        {...routeProps}
+                        sessions={this.state.sessions}
+                        setSelected={this.setSelected}
+                     />
+                  )}
+               />
+               <Route
+                  path="/session/:sessionId"
+                  render={routeProps => (
+                     <SessionListRoute
+                        {...routeProps}
+                        sessions={this.state.sessions}
+                        setSelected={this.setSelected}
+                     />
+                  )}
                />
             </div>
          );
