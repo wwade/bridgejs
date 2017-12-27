@@ -15,7 +15,7 @@ import lightBaseTheme from "material-ui/styles/baseThemes/lightBaseTheme";
 
 class SessionBoards extends Component {
    static propTypes = {
-      //<<<<       boards: PropTypes.array
+      boards: PropTypes.instanceOf(SessionBoardSets)
    };
 
    render() {
@@ -95,11 +95,17 @@ class SessionCardContainer extends Component {
 
    render() {
       let session;
-      if (this.props.sessions && this.props.match.params.sessionId) {
-         let sessionId = Number(this.props.match.params.sessionId);
-         session = this.props.sessions.get(sessionId);
+      if (!this.props.session && !this.props.sessions) {
+         session = null;
       } else {
-         session = this.props.session;
+         if (this.props.match.params.sessionId) {
+            let sessionId = Number(this.props.match.params.sessionId);
+            session = this.props.sessions.get(sessionId);
+         } else if (this.props.session) {
+            session = this.props.session;
+         } else if (this.props.sessions) {
+            session = this.props.sessions.values().next().value;
+         }
       }
       return <SessionCard session={session} />;
    }
@@ -160,6 +166,7 @@ class AppMain extends Component {
                      <SessionCardContainer
                         {...routeProps}
                         session={this.state.session}
+                        sessions={this.state.sessions}
                      />
                   )}
                />
