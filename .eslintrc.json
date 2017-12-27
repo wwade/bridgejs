@@ -6,7 +6,8 @@
    },
    "extends": [
       "eslint:recommended",
-      "plugin:react/recommended"
+      "plugin:react/recommended",
+      "plugin:prettier/recommended"
    ],
    "parserOptions": {
       "ecmaFeatures": {
@@ -16,21 +17,41 @@
       "sourceType": "module"
    },
    "plugins": [
-      "react"
+      "react",
+      "prettier"
     ],
     "rules": {
        "no-undef": "off",
+       "brace-style": [
+          "error",
+          "1tbs", { "allowSingleLine": true }
+       ],
+       "no-spaced-func": "error",
+       "space-in-parens": "error",
+       "space-infix-ops": "error",
+       "space-unary-ops": "error",
+       "no-multi-spaces": "error",
+       "no-param-reassign": "error",
+       "no-extra-bind": "error",
+       "curly": [
+          "error",
+          "all"
+       ],
        "indent": [
+          "error",
+          3
+       ],
+       "react/jsx-indent": [
+          "error",
+          3
+       ],
+       "react/jsx-indent-props": [
           "error",
           3
        ],
        "linebreak-style": [
           "error",
           "unix"
-       ],
-       "quotes": [
-          "error",
-          "double"
        ],
        "semi": [
           "error",

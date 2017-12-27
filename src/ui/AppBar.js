@@ -1,11 +1,9 @@
-import React from "react";
 import AppBar from "material-ui/AppBar";
 import PropTypes from "prop-types";
+import React from "react";
 
-const Main = (props) => (
-   <AppBar
-    onLeftIconButtonClick={props.onLeft}
-    title={props.title} />
+const Main = props => (
+   <AppBar onLeftIconButtonClick={props.onLeft} title={props.title} />
 );
 
 Main.propTypes = {

@@ -1,15 +1,16 @@
-import React, { Component } from "react";
-import "./App.css";
+import { Card, CardText, CardTitle } from "material-ui/Card";
+import { Component } from "react";
+import { List, ListItem } from "material-ui/List";
+import { getBoards } from "./api";
 import AppBar from "./ui/AppBar";
 import Drawer from "material-ui/Drawer";
-import {Card, CardText, CardTitle} from "material-ui/Card";
-import lightBaseTheme from "material-ui/styles/baseThemes/lightBaseTheme";
 import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
-import getMuiTheme from "material-ui/styles/getMuiTheme";
-import SessionListContainer from "./comp/SessionList";
-import {List, ListItem} from "material-ui/List";
-import {getBoards} from "./api";
 import PropTypes from "prop-types";
+import React from "react";
+import SessionListContainer from "./comp/SessionList";
+import darkBaseTheme from "material-ui/styles/baseThemes/darkBaseTheme";
+import getMuiTheme from "material-ui/styles/getMuiTheme";
+import lightBaseTheme from "material-ui/styles/baseThemes/lightBaseTheme";
 
 class SessionBoards extends Component {
    static propTypes = {
@@ -22,11 +23,11 @@ class SessionBoards extends Component {
       } else {
          return (
             <List>
-            {this.props.boards.map( (b, index ) => {
-               return (
-                  <ListItem key={index} value={index} primaryText={b.Team} />
-               );
-            })}
+               {this.props.boards.map((b, index) => {
+                  return (
+                     <ListItem key={index} value={index} primaryText={b.Team} />
+                  );
+               })}
             </List>
          );
       }
@@ -40,16 +41,16 @@ class SessionBoardsContainer extends Component {
    };
 
    static propTypes = {
-      session: PropTypes.object.isRequired,
+      session: PropTypes.object.isRequired
    };
 
    loadBoards(sessionId) {
-      this.setState({sessionId: sessionId});
+      this.setState({ sessionId: sessionId });
       getBoards(sessionId).end((err, res) => {
-         if ( err ) {
-            alert( err.message );
+         if (err) {
+            alert(err.message);
          } else {
-            this.setState({boards: res.body.BoardSets});
+            this.setState({ boards: res.body.BoardSets });
          }
       });
    }
@@ -72,25 +73,25 @@ class SessionBoardsContainer extends Component {
 
 class SessionCard extends Component {
    static propTypes = {
-      session: PropTypes.object.isRequired,
+      session: PropTypes.object
    };
 
    render() {
-      if ( this.props.session ) {
+      if (this.props.session) {
          return (
-         <Card>
-            <CardTitle title={this.props.session.Name} />
-            <CardText>
-               <SessionBoardsContainer session={this.props.session} />
-               {this.props.session.dateString()}
-            </CardText>
-         </Card>
+            <Card>
+               <CardTitle title={this.props.session.Name} />
+               <CardText>
+                  <SessionBoardsContainer session={this.props.session} />
+                  {this.props.session.dateString()}
+               </CardText>
+            </Card>
          );
       } else {
          return (
-         <Card>
-            <CardTitle title="No session selected" />
-         </Card>
+            <Card>
+               <CardTitle title="No session selected" />
+            </Card>
          );
       }
    }
@@ -99,27 +100,25 @@ class SessionCard extends Component {
 class AppMain extends Component {
    state = {
       open: false,
-      session: null,
+      session: null
    };
 
-   onLeft = () => this.setState({ open: !this.state.open});
+   onLeft = () => this.setState({ open: !this.state.open });
 
-   onSelection = ( sessionObj) => {
+   onSelection = sessionObj => {
       this.setState({ open: false, session: sessionObj });
-   }
+   };
 
    render() {
       return (
          <div>
-            <AppBar
-               onLeft={this.onLeft}
-               title="Bridge Scores" />
+            <AppBar onLeft={this.onLeft} title="Bridge Scores" />
             <Drawer
                docked={false}
                open={this.state.open}
-               onRequestChange={(open) => this.setState({open})}
+               onRequestChange={open => this.setState({ open })}
             >
-               <SessionListContainer onSelection={this.onSelection}/>
+               <SessionListContainer onSelection={this.onSelection} />
             </Drawer>
             <SessionCard session={this.state.session} />
          </div>
@@ -127,10 +126,16 @@ class AppMain extends Component {
    }
 }
 
-const App = () => (
-   <MuiThemeProvider muiTheme={getMuiTheme(lightBaseTheme)}>
-   <AppMain />
-   </MuiThemeProvider>
-);
+class App extends Component {
+   render() {
+      let useDark = false;
+      let theme = useDark ? darkBaseTheme : lightBaseTheme;
+      return (
+         <MuiThemeProvider muiTheme={getMuiTheme(theme)}>
+            <AppMain />
+         </MuiThemeProvider>
+      );
+   }
+}
 
 export default App;
