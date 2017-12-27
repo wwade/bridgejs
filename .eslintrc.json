@@ -22,10 +22,7 @@
     ],
     "rules": {
        "no-undef": "off",
-       "brace-style": [
-          "error",
-          "1tbs", { "allowSingleLine": true }
-       ],
+       "no-console": "off",
        "no-spaced-func": "error",
        "space-in-parens": "error",
        "space-infix-ops": "error",
@@ -33,14 +30,6 @@
        "no-multi-spaces": "error",
        "no-param-reassign": "error",
        "no-extra-bind": "error",
-       "curly": [
-          "error",
-          "all"
-       ],
-       "indent": [
-          "error",
-          3
-       ],
        "react/jsx-indent": [
           "error",
           3
