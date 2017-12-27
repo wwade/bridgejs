@@ -2,7 +2,7 @@ import { Card, CardTitle } from "material-ui/Card";
 import { Link, Route } from "react-router-dom";
 import { List, ListItem, makeSelectable } from "material-ui/List";
 import React, { Component } from "react";
-import { SessionObject } from "../model/Data";
+import { BridgeSession } from "../model/Data";
 import { getSessions } from "../api";
 import Divider from "material-ui/Divider";
 import PropTypes from "prop-types";
@@ -152,7 +152,7 @@ class SessionListContainer extends Component {
             sessions = [];
          } else {
             sessions = Array.from(res.body.Sessions)
-               .map(s => new SessionObject(s))
+               .map(s => new BridgeSession(s))
                .sort((a, b) => {
                   return a.compare(b);
                });

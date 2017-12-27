@@ -1,8 +1,7 @@
 import { Card, CardText, CardTitle } from "material-ui/Card";
 import { Component } from "react";
-import { HashRouter, Route } from "react-router-dom";
-import { List, ListItem } from "material-ui/List";
-import { SessionObject } from "./model/Data";
+import { HashRouter, Link, Route } from "react-router-dom";
+import { SessionBoardSets, BridgeSession } from "./model/Data";
 import { getBoards } from "./api";
 import AppBar from "./ui/AppBar";
 import Drawer from "material-ui/Drawer";
@@ -16,22 +15,14 @@ import lightBaseTheme from "material-ui/styles/baseThemes/lightBaseTheme";
 
 class SessionBoards extends Component {
    static propTypes = {
-      boards: PropTypes.array
+      //<<<<       boards: PropTypes.array
    };
 
    render() {
       if (!this.props.boards) {
          return "";
       } else {
-         return (
-            <List>
-               {this.props.boards.map((b, index) => {
-                  return (
-                     <ListItem key={index} value={index} primaryText={b.Team} />
-                  );
-               })}
-            </List>
-         );
+         return "";
       }
    }
 }
@@ -52,7 +43,7 @@ class SessionBoardsContainer extends Component {
          if (err) {
             alert(err.message);
          } else {
-            this.setState({ boards: res.body.BoardSets });
+            this.setState({ boards: new SessionBoardSets(res.body.BoardSets) });
          }
       });
    }
@@ -97,7 +88,7 @@ class SessionCard extends Component {
 
 class SessionCardContainer extends Component {
    static propTypes = {
-      session: PropTypes.instanceOf(SessionObject),
+      session: PropTypes.instanceOf(BridgeSession),
       sessions: PropTypes.instanceOf(Map),
       match: PropTypes.object
    };
@@ -122,6 +113,7 @@ class AppMain extends Component {
    };
 
    onLeft = () => this.setState({ open: !this.state.open });
+   onRight = () => {};
 
    onSessions = sessionArray => {
       let sessionMap = new Map(sessionArray.map(s => [s.Id, s]));
@@ -136,7 +128,12 @@ class AppMain extends Component {
       return (
          <HashRouter>
             <div>
-               <AppBar onLeft={this.onLeft} title="Bridge Scores" />
+               <AppBar
+                  onLeft={this.onLeft}
+                  onRight={this.onRight}
+                  homeLink={<Link to="/" replace />}
+                  title="Bridge Scores"
+               />
                <Drawer
                   docked={false}
                   open={this.state.open}
