@@ -33,15 +33,15 @@ export const diamonds = "diamonds";
 export const hearts = "hearts";
 export const spades = "spades";
 export const nt = "noTrumps";
-export const majors = new Array(hearts, spades);
-export const minors = new Array(clubs, diamonds);
+export const majors = [hearts, spades];
+export const minors = [clubs, diamonds];
 
 export const undoubled = "undoubled";
 export const redoubled = "redoubled";
 export const doubled = "doubled";
-export const none = new Array();
-export const ew = new Array(east, west);
-export const ns = new Array(north, south);
+export const none = [];
+export const ew = [east, west];
+export const ns = [north, south];
 export const all = ns.concat(ew);
 
 export class BridgeBoard {
@@ -255,7 +255,7 @@ export class BridgeBoardSet {
          } else {
             return null;
          }
-         if (prev && prev != pos) {
+         if (prev && prev !== pos) {
             return null;
          }
          prev = pos;

@@ -2,10 +2,10 @@ import * as Data from "../model/Data";
 const assert = require("assert");
 
 export class BoardResults {
-   constructor(boardNum, imps1, team1, imps2, team2) {
+   constructor(boardNum, imps1, imps2, board1, board2) {
       this.boardNum = boardNum;
       this.imps = [imps1, imps2];
-      this.teams = [team1, team2];
+      this.boards = [board1, board2];
    }
 }
 
@@ -94,6 +94,8 @@ export class ImpResults {
             return 23;
          case 4000 <= n:
             return 24;
+         default:
+            throw new Error("Should not be reachable");
       }
    }
 
@@ -105,13 +107,13 @@ export class ImpResults {
       }
    }
 
-   add(board1, board2, res1, res2) {
+   add(board1, board2, pos1, pos2) {
       let team1Score = board1.score();
       let team2Score = board2.score();
-      if (res1.publisherInfo.pos === Data.ew) {
+      if (pos1 === Data.ew) {
          team1Score = -1 * team1Score;
       }
-      if (res2.publisherInfo.pos === Data.ew) {
+      if (pos2 === Data.ew) {
          team2Score = -1 * team2Score;
       }
 
@@ -126,7 +128,13 @@ export class ImpResults {
       }
       assert(board1.boardNumber === board2.boardNumber);
       let boardNum = board1.boardNumber;
-      let board = new BoardResults(boardNum, team1Imps, res1, team2Imps, res2);
+      let board = new BoardResults(
+         boardNum,
+         team1Imps,
+         team2Imps,
+         board1,
+         board2
+      );
       this.boards.set(boardNum, board);
    }
 }
@@ -138,7 +146,7 @@ export class TeamResults {
 
    addConflict(conflictResults, key, val) {
       if (!conflictResults.has(key)) {
-         conflictResults.set(key, { teamInfo: new Array() });
+         conflictResults.set(key, { teamInfo: [] });
       }
       conflictResults.get(key).teamInfo.push(val);
    }
@@ -150,7 +158,9 @@ export class TeamResults {
       var ret = {
          results: uniqueResults,
          conflict: conflictResults,
-         imps: impResults
+         imps: impResults,
+         team1: null,
+         team2: null
       };
       var boardSets = this.sessionBoards.boardSets;
       for (let boardSet of boardSets) {
@@ -158,7 +168,7 @@ export class TeamResults {
          if (!uniqueResults.has(key)) {
             uniqueResults.set(key, {
                boardSet: boardSet,
-               publisherInfo: new Array()
+               publisherInfo: []
             });
          }
          var pos = boardSet.publisherPosition();
@@ -180,48 +190,16 @@ export class TeamResults {
       let res2 = iter.next().value;
       let res1Boards = res1.boardSet.boards;
       let res2Boards = res2.boardSet.boards;
+      ret.team1 = res1.boardSet;
+      ret.team2 = res2.boardSet;
       for (let [boardNum, b1] of res1Boards) {
          if (!res2Boards.has(boardNum)) {
             continue;
          }
          let b2 = res2Boards.get(boardNum);
-         impResults.add(b1, b2, res1, res2);
+         impResults.add(b1, b2, res1.publisherInfo.pos, res2.publisherInfo.pos);
       }
 
       return ret;
    }
-   // sessionScore() {
-   //    var results = new Map();
-   //    var boardSets = this.sessionBoards.boardSets;
-   //    for (let boardSet of boardSets) {
-   //       for (let board of boardSet.boards.values()) {
-   //          let boardStr = JSON.stringify(board);
-   //          if (!results.has(boardStr)) {
-   //             results.set(boardStr, { board: board, teams: new Array() });
-   //          }
-   //          results.get(boardStr).teams.push(boardSet.team);
-   //       }
-   //    }
-   //    for (let info of results.values()) {
-   //       let board = info.board;
-   //       let teamList = info.teams;
-   //       console.log(board.boardNumber, board.score(), teamList);
-   //    }
-   //    console.log(results);
-   //    return results;
-   // }
-
-   // teams() {
-   //    var bs = this.sessionBoards.boardSets;
-   //    var boardResults = new Map();
-   //    for (var key of bs) {
-   //       var boardSet = bs[key];
-   //       for (var [boardNum, board] of boardSet.boards) {
-   //          if (!boardResults.has(boardNum)) {
-   //             boardResults[boardNum] = new Array();
-   //          }
-   //          boardResults[boardNum].push([boardSet.team, board]);
-   //       }
-   //    }
-   // }
 }
