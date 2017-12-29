@@ -189,11 +189,12 @@ class SessionCard extends Component {
 
    render() {
       if (this.props.session) {
-         let cardTitle =
-            this.props.session.Name + ", " + this.props.session.dateString();
          return (
             <Card>
-               <CardTitle title={cardTitle} />
+               <CardTitle
+                  title={this.props.session.Name}
+                  subtitle={this.props.session.dateString()}
+               />
                <SessionBoardsContainer session={this.props.session} />
             </Card>
          );
