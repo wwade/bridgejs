@@ -24,9 +24,14 @@ function board(num, level, suit, decl, made, publisherSeat) {
    };
 }
 
-function teamResults(boardSets) {
+function _teamResults(boardSets) {
    let sessionBoardSets = new Data.SessionBoardSets(boardSets);
    return new Results.TeamResults(sessionBoardSets);
+}
+
+function score(boardSets) {
+   let tr = _teamResults(boardSets);
+   return tr.sessionScore();
 }
 
 const team1Ns = {
@@ -47,8 +52,8 @@ const team1Ew = {
    Team: "Harry + Sally",
    Boards: [
       board(1, 3, D, S, 0, W),
-      board(2, 3, NT, W, 1, W),
-      board(3, 5, D, S, -1, W)
+      board(2, 3, NT, W, -1, W),
+      board(3, 5, H, S, -1, W)
    ]
 };
 
@@ -56,8 +61,8 @@ const team1EwBad = {
    Team: "Harry + Sally",
    Boards: [
       board(1, 3, D, S, 0, W),
-      board(2, 3, NT, W, 1, W),
-      board(3, 5, D, S, -1, W)
+      board(2, 2, NT, W, 0, W),
+      board(3, 5, H, S, -1, W)
    ]
 };
 
@@ -73,15 +78,14 @@ const team2Ns = {
 const team2Ew = {
    Team: "Turner + Hooch",
    Boards: [
-      board(1, 3, C, N, 0, E),
-      board(2, 3, NT, W, 1, E),
+      board(1, 4, H, N, 2, E),
+      board(2, 3, NT, W, 0, E),
       board(3, 5, D, S, -1, E)
    ]
 };
 
 it("basic, scores entered by each team's n/s pair", () => {
-   let tr = teamResults([team1Ns, team2Ns]);
-   let ss = tr.sessionScore();
+   let ss = score([team1Ns, team2Ns]);
    expect(ss.results.size).toBe(2);
    expect(ss.conflict.size).toBe(0);
    let haveNs = 0;
@@ -107,8 +111,7 @@ it("basic, scores entered by each team's n/s pair", () => {
 });
 
 it("marginal, same n/s pair, both players entered results", () => {
-   let tr = teamResults([team1Ns, team1NsB]);
-   let ss = tr.sessionScore();
+   let ss = score([team1Ns, team1NsB]);
    expect(ss.results.size).toBe(1);
    expect(ss.conflict.size).toBe(0);
    for (let r of ss.results.values()) {
@@ -116,6 +119,22 @@ it("marginal, same n/s pair, both players entered results", () => {
    }
    expect(ss.imps.imps1).toEqual(0);
    expect(ss.imps.imps2).toEqual(0);
+});
+
+it("only one team entered results, 1 NS and 1 EW", () => {
+   let ss = score([team1Ns, team1Ew]);
+   expect(ss.results.size).toBe(2);
+   for (let r of ss.results.values()) {
+      expect(r.publisherInfo.length).toBe(1);
+   }
+});
+
+it("only EW pairs entered results", () => {
+   let ss = score([team1Ew, team2Ew]);
+   expect(ss.results.size).toBe(2);
+   for (let r of ss.results.values()) {
+      expect(r.publisherInfo.length).toBe(1);
+   }
 });
 
 //it("one set of results is missing a board", () => {

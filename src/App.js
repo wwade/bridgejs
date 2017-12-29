@@ -1,9 +1,16 @@
 import { Card, CardText, CardTitle } from "material-ui/Card";
 import { Component } from "react";
 import { HashRouter, Link, Route } from "react-router-dom";
-import { SessionBoardSets, BridgeSession } from "./model/Data";
+import {
+   BridgeBoard,
+   BridgeBoardSet,
+   BridgeSession,
+   SessionBoardSets
+} from "./model/Data";
+import { BoardResults, TeamResults } from "./bridge/Results";
 import { getBoards } from "./api";
 import AppBar from "./ui/AppBar";
+import suitIcon from "./ui/Icons";
 import Drawer from "material-ui/Drawer";
 import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 import PropTypes from "prop-types";
@@ -12,6 +19,98 @@ import SessionListContainer from "./comp/SessionList";
 import darkBaseTheme from "material-ui/styles/baseThemes/darkBaseTheme";
 import getMuiTheme from "material-ui/styles/getMuiTheme";
 import lightBaseTheme from "material-ui/styles/baseThemes/lightBaseTheme";
+
+class ContractInfo extends Component {
+   static propTypes = {
+      board: PropTypes.instanceOf(BridgeBoard).isRequired
+   };
+
+   trickString(relTricks) {
+      if (!relTricks) {
+         return "making";
+      } else {
+         if (relTricks > 0) {
+            return "plus " + relTricks;
+         } else {
+            return "down " + relTricks;
+         }
+      }
+   }
+
+   render() {
+      let b = this.props.board;
+      if (b.level) {
+         return (
+            <span>
+               {b.level}
+               {suitIcon(b.suit)} by {b.declarer}
+               {", "}
+               {this.trickString(b.relativeTricks())} ({b.score()})
+            </span>
+         );
+      } else {
+         return <span>No bid</span>;
+      }
+   }
+}
+ContractInfo.propTypes = {
+   board: PropTypes.instanceOf(BridgeBoard).isRequired
+};
+
+const SessionBoard = props => (
+   <div>
+      <div>
+         {props.imps} IMPS for {props.team.team}
+      </div>
+      <div>
+         <ContractInfo board={props.board} />
+      </div>
+   </div>
+);
+SessionBoard.propTypes = {
+   board: PropTypes.instanceOf(BridgeBoard).isRequired,
+   imps: PropTypes.number.isRequired,
+   team: PropTypes.instanceOf(BridgeBoardSet).isRequired
+};
+
+const SessionBoardResults = props => (
+   <div>
+      <div>Board {props.boardResults.boardNum}</div>
+      <SessionBoard
+         key={0}
+         board={props.boardResults.boards[0]}
+         imps={props.boardResults.imps[0]}
+         team={props.team1}
+      />
+      <SessionBoard
+         key={1}
+         board={props.boardResults.boards[1]}
+         imps={props.boardResults.imps[1]}
+         team={props.team2}
+      />
+   </div>
+);
+
+SessionBoardResults.propTypes = {
+   boardResults: PropTypes.instanceOf(BoardResults).isRequired,
+   team1: PropTypes.instanceOf(BridgeBoardSet),
+   team2: PropTypes.instanceOf(BridgeBoardSet)
+};
+
+const SessionSummary = props => (
+   <span>
+      <div>
+         Team 1: {props.scores.team1.team}, IMPs: {props.scores.imps.imps1}
+      </div>
+      <div>
+         Team 2: {props.scores.team2.team}, IMPs: {props.scores.imps.imps2}
+      </div>
+   </span>
+);
+
+SessionSummary.propTypes = {
+   scores: PropTypes.object.isRequired
+};
 
 class SessionBoards extends Component {
    static propTypes = {
@@ -22,7 +121,26 @@ class SessionBoards extends Component {
       if (!this.props.boards) {
          return "";
       } else {
-         return "";
+         let teamRes = new TeamResults(this.props.boards);
+         let scores = teamRes.sessionScore();
+         return React.Children.toArray([
+            <CardText key="sessionInfo">
+               <SessionSummary scores={scores} />
+            </CardText>,
+            <CardText key="boardResults">
+               {[...scores.imps.boards.keys()].sort().map(bn => {
+                  let board = scores.imps.boards.get(bn);
+                  return (
+                     <SessionBoardResults
+                        key={bn}
+                        team1={scores.team1}
+                        team2={scores.team2}
+                        boardResults={board}
+                     />
+                  );
+               })}
+            </CardText>
+         ]);
       }
    }
 }
@@ -71,13 +189,12 @@ class SessionCard extends Component {
 
    render() {
       if (this.props.session) {
+         let cardTitle =
+            this.props.session.Name + ", " + this.props.session.dateString();
          return (
             <Card>
-               <CardTitle title={this.props.session.Name} />
-               <CardText>
-                  <SessionBoardsContainer session={this.props.session} />
-                  {this.props.session.dateString()}
-               </CardText>
+               <CardTitle title={cardTitle} />
+               <SessionBoardsContainer session={this.props.session} />
             </Card>
          );
       } else {
