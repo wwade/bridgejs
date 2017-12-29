@@ -31,8 +31,8 @@ function teamResults(boardSets) {
 const team1Ns = {
    Team: "Alice + Bob",
    Boards: [
-      board(1, 3, C, N, 0, S),
-      board(2, 3, NT, W, 1, S),
+      board(1, 3, C, N, 1, S),
+      board(2, 2, NT, W, 1, S),
       board(3, 5, D, S, -1, S)
    ]
 };
@@ -86,13 +86,13 @@ it("basic, scores entered by each team's n/s pair", () => {
    let haveNs = 0;
    let haveEw = 0;
    for (let r of ss.results.values()) {
-      expect(r.teamInfo.length).toBe(1);
-      if (r.teamInfo.pos === Data.ew) {
+      expect(r.publisherInfo.length).toBe(1);
+      if (r.publisherInfo.pos === Data.ew) {
          haveEw += 1;
-      } else if (r.teamInfo.pos === Data.nw) {
+      } else if (r.publisherInfo.pos === Data.nw) {
          haveNs += 1;
       } else {
-         assert(false, "invalid teamInfo.pos" + teamInfo.pos);
+         assert(false, "invalid publisherInfo.pos" + publisherInfo.pos);
       }
    }
    expect(haveNs).toBe(2);
@@ -105,12 +105,72 @@ it("marginal, same n/s pair, both players entered results", () => {
    expect(ss.results.size).toBe(1);
    expect(ss.conflict.size).toBe(0);
    for (let r of ss.results.values()) {
-      expect(r.teamInfo.length).toBe(2);
+      expect(r.publisherInfo.length).toBe(2);
    }
 });
+
+//it("one set of results is missing a board", () => {
+//});
 
 //it("everyone entered results", () => {
 //});
 
 //it("someone entered conflicting results", () => {
 //});
+//
+
+function impCheck(val, expImps) {
+   expect(new Results.ImpResults().imps(val)).toEqual(expImps);
+   expect(new Results.ImpResults().imps(-1 * val)).toEqual(-1 * expImps);
+}
+
+it("calculate IMPs for positive numbers", () => {
+   impCheck(20, 1);
+   impCheck(40, 1);
+   impCheck(50, 2);
+   impCheck(80, 2);
+   impCheck(90, 3);
+   impCheck(120, 3);
+   impCheck(130, 4);
+   impCheck(160, 4);
+   impCheck(170, 5);
+   impCheck(210, 5);
+   impCheck(220, 6);
+   impCheck(260, 6);
+   impCheck(270, 7);
+   impCheck(310, 7);
+   impCheck(320, 8);
+   impCheck(360, 8);
+   impCheck(370, 9);
+   impCheck(420, 9);
+   impCheck(430, 10);
+   impCheck(490, 10);
+   impCheck(500, 11);
+   impCheck(590, 11);
+   impCheck(600, 12);
+   impCheck(740, 12);
+   impCheck(750, 13);
+   impCheck(890, 13);
+   impCheck(900, 14);
+   impCheck(1090, 14);
+   impCheck(1100, 15);
+   impCheck(1290, 15);
+   impCheck(1300, 16);
+   impCheck(1490, 16);
+   impCheck(1500, 17);
+   impCheck(1740, 17);
+   impCheck(1750, 18);
+   impCheck(1990, 18);
+   impCheck(2000, 19);
+   impCheck(2240, 19);
+   impCheck(2250, 20);
+   impCheck(2490, 20);
+   impCheck(2500, 21);
+   impCheck(2990, 21);
+   impCheck(3000, 22);
+   impCheck(3490, 22);
+   impCheck(3500, 23);
+   impCheck(3990, 23);
+   impCheck(4000, 24);
+   impCheck(5000, 24);
+});
