@@ -49,6 +49,7 @@ export class BridgeBoard {
       this.boardNumber = data.BoardNumber;
       this.suit = data.Suit;
       this.declarer = data.Declarer;
+      this.publisherSeat = data.PublisherSeat;
       this.level = data.Level;
       this.tricks = data.Tricks;
       this.doubled = data.Doubled;
@@ -236,6 +237,26 @@ export class BridgeBoardSet {
       this.boards = new Map(
          data.Boards.map(b => [b.BoardNumber, new BridgeBoard(b)])
       );
+   }
+
+   publisherPosition() {
+      // Determine if pair sits E/W or N/S.
+      let pos = null;
+      let prev = null;
+      for (let board of this.boards.values()) {
+         if (ns.includes(board.publisherSeat)) {
+            pos = ns;
+         } else if (ew.includes(board.publisherSeat)) {
+            pos = ew;
+         } else {
+            return null;
+         }
+         if (prev && prev != pos) {
+            return null;
+         }
+         prev = pos;
+      }
+      return pos;
    }
 }
 
