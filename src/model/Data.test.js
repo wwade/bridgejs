@@ -87,3 +87,8 @@ checkScore("small slam         ", board(3, 6, NT, U, 0, N, S), 990);
 checkScore("small slam vul     ", board(3, 6, NT, U, 1, E, W), 1470);
 checkScore("grand slam         ", board(8, 7, D, U, 0, S, N), 1440);
 checkScore("vs grand lam vul   ", board(4, 7, D, U, 0, N, E), -2140);
+
+checkScore("NT down 1 non vul W", board(1, 2, NT, U, -1, W, S), 50);
+checkScore("NT down 1 non vul S", board(1, 2, NT, U, -1, S, W), 50);
+checkScore("NT down 1 vul W", board(4, 2, NT, U, -1, W, S), 100);
+checkScore("NT down 1 vul S", board(4, 2, NT, U, -1, S, W), 100);
