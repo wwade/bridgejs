@@ -15,7 +15,16 @@ export class BridgeSession {
    dateString() {
       let offset = moment().utcOffset() * 60 * 1000;
       let date = moment(this.Timestamp - offset);
-      return date.fromNow();
+      let hour = date.hour();
+      let timeStr;
+      if (hour <= 11) {
+         timeStr = "Morning";
+      } else if (hour <= 17) {
+         timeStr = "Afternoon";
+      } else {
+         timeStr = "Evening";
+      }
+      return timeStr + ", " + date.format("ll");
    }
 }
 
