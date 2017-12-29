@@ -88,7 +88,11 @@ export class BridgeBoard {
    }
 
    contractPoints() {
-      let contractTricks = this.relativeTricks() >= 0 ? this.level : 0;
+      let relTricks = this.relativeTricks();
+      if (relTricks < 0) {
+         return 0;
+      }
+      let contractTricks = relTricks >= 0 ? this.level : 0;
       let contractTrickPoints;
       if (majors.includes(this.suit)) {
          contractTrickPoints = 30 * contractTricks;
