@@ -17,6 +17,32 @@ export class ImpResults {
    }
 
    absImps(n) {
+      // Diff. in Pts.  IMPs
+      // 20 - 40         1
+      // 50 - 80         2
+      // 90 - 120        3
+      // 130 - 160       4
+      // 170 - 210       5
+      // 220 - 260       6
+      // 270 - 310       7
+      // 320 - 360       8
+      // 370 - 420       9
+      // 430 - 490       10
+      // 500 - 590       11
+      // 600 - 740       12
+      // 750 - 890       13
+      // 900 - 1090      14
+      // 1100 - 1290     15
+      // 1300 - 1490     16
+      // 1500 - 1740     17
+      // 1750 - 1990     18
+      // 2000 - 2240     19
+      // 2250 - 2490     20
+      // 2500 - 2990     21
+      // 3000 - 3490     22
+      // 3500 - 3990     23
+      // 4000 and up     24
+
       switch (true) {
          case n < 20:
             return 0;
@@ -72,32 +98,6 @@ export class ImpResults {
    }
 
    imps(diff) {
-      // Diff. in Pts.  IMPs
-      // 20 - 40         1
-      // 50 - 80         2
-      // 90 - 120        3
-      // 130 - 160       4
-      // 170 - 210       5
-      // 220 - 260       6
-      // 270 - 310       7
-      // 320 - 360       8
-      // 370 - 420       9
-      // 430 - 490       10
-      // 500 - 590       11
-      // 600 - 740       12
-      // 750 - 890       13
-      // 900 - 1090      14
-      // 1100 - 1290     15
-      // 1300 - 1490     16
-      // 1500 - 1740     17
-      // 1750 - 1990     18
-      // 2000 - 2240     19
-      // 2250 - 2490     20
-      // 2500 - 2990     21
-      // 3000 - 3490     22
-      // 3500 - 3990     23
-      // 4000 and up     24
-
       if (diff < 0) {
          return -1 * this.absImps(-1 * diff);
       } else {
@@ -118,10 +118,10 @@ export class ImpResults {
       let team1Imps = 0;
       let team2Imps = 0;
       if (team1Score > team2Score) {
-         team1Imps = team1Score - team2Score;
+         team1Imps = this.imps(team1Score - team2Score);
          this.imps1 += team1Imps;
       } else {
-         team2Imps = team2Score - team2Score;
+         team2Imps = this.imps(team2Score - team1Score);
          this.imps2 += team2Imps;
       }
       assert(board1.boardNumber === board2.boardNumber);

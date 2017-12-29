@@ -3,6 +3,7 @@ import * as Results from "./Results";
 
 const C = Data.clubs;
 const D = Data.diamonds;
+const H = Data.hearts;
 const NT = Data.nt;
 const U = Data.undoubled;
 const N = Data.north;
@@ -31,8 +32,8 @@ function teamResults(boardSets) {
 const team1Ns = {
    Team: "Alice + Bob",
    Boards: [
-      board(1, 3, C, N, 1, S),
-      board(2, 2, NT, W, 1, S),
+      board(1, 4, H, N, 2, S),
+      board(2, 3, NT, W, 0, S),
       board(3, 5, D, S, -1, S)
    ]
 };
@@ -64,8 +65,8 @@ const team2Ns = {
    Team: "Jay + Silent Bob",
    Boards: [
       board(1, 3, D, S, 0, N),
-      board(2, 3, NT, W, 1, N),
-      board(3, 5, D, S, -1, N)
+      board(2, 3, NT, W, -1, N),
+      board(3, 5, H, S, -1, N)
    ]
 };
 
@@ -97,6 +98,12 @@ it("basic, scores entered by each team's n/s pair", () => {
    }
    expect(haveNs).toBe(2);
    expect(haveEw).toBe(0);
+
+   expect(ss.imps.imps1).toEqual(9);
+   expect(ss.imps.imps2).toEqual(10);
+   expect(ss.imps.boards.get(1).imps).toEqual([9, 0]);
+   expect(ss.imps.boards.get(2).imps).toEqual([0, 10]);
+   expect(ss.imps.boards.get(3).imps).toEqual([0, 0]);
 });
 
 it("marginal, same n/s pair, both players entered results", () => {
@@ -107,6 +114,8 @@ it("marginal, same n/s pair, both players entered results", () => {
    for (let r of ss.results.values()) {
       expect(r.publisherInfo.length).toBe(2);
    }
+   expect(ss.imps.imps1).toEqual(0);
+   expect(ss.imps.imps2).toEqual(0);
 });
 
 //it("one set of results is missing a board", () => {
@@ -121,10 +130,14 @@ it("marginal, same n/s pair, both players entered results", () => {
 
 function impCheck(val, expImps) {
    expect(new Results.ImpResults().imps(val)).toEqual(expImps);
-   expect(new Results.ImpResults().imps(-1 * val)).toEqual(-1 * expImps);
+   if (expImps) {
+      expect(new Results.ImpResults().imps(-1 * val)).toEqual(-1 * expImps);
+   }
 }
 
-it("calculate IMPs for positive numbers", () => {
+it("calculate IMPs for all score differences", () => {
+   impCheck(0, 0);
+   impCheck(10, 0);
    impCheck(20, 1);
    impCheck(40, 1);
    impCheck(50, 2);
