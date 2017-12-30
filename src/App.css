@@ -1,5 +1,6 @@
 .table {
    padding-bottom: 1em;
+   border-collapse: collapse;
 }
 
 .tableRow {
@@ -25,9 +26,12 @@
 .tableCell {
    padding-left: 1em;
    padding-top: 0.25em;
+   padding-bottom: 0.25em;
 }
 
 .tableCellBreak {
+   border: none;
+   padding-left: 0;
    padding-top: 1em;
    font-weight: bold;
    font-size: 110%;
