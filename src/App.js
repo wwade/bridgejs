@@ -1,6 +1,6 @@
 import "./App.css";
 import * as Data from "./model/Data";
-import { BoardResults, TeamResults } from "./bridge/Results";
+import { BoardResults, ImpResults, TeamResults } from "./bridge/Results";
 import { Card, CardText, CardTitle } from "material-ui/Card";
 import { Component } from "react";
 import { HashRouter, Link, Route } from "react-router-dom";
@@ -16,19 +16,32 @@ import darkBaseTheme from "material-ui/styles/baseThemes/darkBaseTheme";
 import getMuiTheme from "material-ui/styles/getMuiTheme";
 import lightBaseTheme from "material-ui/styles/baseThemes/lightBaseTheme";
 
+function numberObjId(value) {
+   let idVal;
+   if (value > 0) {
+      idVal = "positive";
+   } else if (value < 0) {
+      idVal = "negative";
+   } else {
+      idVal = "tied";
+   }
+   return idVal;
+}
+
 class ContractInfo extends Component {
    static propTypes = {
       board: PropTypes.instanceOf(Data.BridgeBoard).isRequired
    };
 
-   trickString(relTricks) {
+   trickString(b) {
+      let relTricks = b.relativeTricks();
       if (!relTricks) {
-         return "made";
+         return "";
       } else {
          if (relTricks > 0) {
-            return "+ " + relTricks;
+            return ", made " + (b.level + relTricks);
          } else {
-            return "down " + -1 * relTricks;
+            return ", down " + -1 * relTricks;
          }
       }
    }
@@ -48,13 +61,17 @@ class ContractInfo extends Component {
                xStr = "";
                break;
          }
+         let score = b.score();
+         let scoreId = numberObjId(score);
+         if (score > 0) {
+            score = "+" + score;
+         }
          return (
             <span>
                {b.level}
                {suitIcon(b.suit)}
                {xStr} by {b.declarer}
-               {", "}
-               {this.trickString(b.relativeTricks())}
+               {this.trickString(b)} (<span id={scoreId}>{score}</span>)
             </span>
          );
       } else {
@@ -70,97 +87,119 @@ class SessionBoard extends Component {
    static propTypes = {
       board: PropTypes.instanceOf(Data.BridgeBoard).isRequired,
       imps: PropTypes.number.isRequired,
-      publisher: PropTypes.instanceOf(Data.BridgeBoardSet).isRequired
+      publisher: PropTypes.instanceOf(Data.BridgeBoardSet).isRequired,
+      rowNum: PropTypes.number.isRequired
    };
 
    render() {
       let props = this.props;
-      return React.Children.toArray([
-         <tr className="tableRow" key={props.publisher.team}>
-            <td className="tableCell">
+      let rowClass;
+      let cellClass;
+      if (props.rowNum % 2) {
+         rowClass = "tableRow odd";
+         cellClass = "tableCell oddCell";
+      } else {
+         rowClass = "tableRow even";
+         cellClass = "tableCell evenCell";
+      }
+      let impStr = props.imps ? props.imps + " IMP" : "-";
+      let impCell = <td className={cellClass + " impCell"}>{impStr}</td>;
+      return (
+         <tr className={rowClass} key={props.rowNum + props.publisher.team}>
+            <td className={cellClass}>{props.publisher.dirString()}</td>
+            <td className={cellClass}>
                <div>{props.publisher.team}</div>
                <div>
                   <ContractInfo board={props.board} />
                </div>
             </td>
-            <td className="tableCell">{props.imps} IMPs</td>
-            <td className="tableCell">{props.board.score()}</td>
+            {impCell}
          </tr>
-      ]);
+      );
    }
 }
 
 class SessionBoardResults extends Component {
    static propTypes = {
       boardResults: PropTypes.instanceOf(BoardResults).isRequired,
-      publisher1: PropTypes.instanceOf(Data.BridgeBoardSet),
-      publisher2: PropTypes.instanceOf(Data.BridgeBoardSet)
+      publisherArray: PropTypes.array.isRequired
    };
 
    render() {
       let props = this.props;
       return React.Children.toArray([
-         <tr className="tableRowBreak" key="boardNum">
-            <td className="tableCellBreak" colSpan="3">
+         <tr className="tableRow" key="boardNum">
+            <td className="tableCell tableCellBreak" colSpan="3">
                Board {props.boardResults.boards[0].boardNumber}:
             </td>
          </tr>,
          <SessionBoard
             key={0}
+            rowNum={0}
             board={props.boardResults.boards[0]}
             imps={props.boardResults.imps[0]}
-            publisher={props.publisher1}
+            publisher={props.publisherArray[0]}
          />,
          <SessionBoard
             key={1}
+            rowNum={1}
             board={props.boardResults.boards[1]}
             imps={props.boardResults.imps[1]}
-            publisher={props.publisher2}
+            publisher={props.publisherArray[1]}
          />
       ]);
    }
 }
 
-const SessionSummaryLine = props => (
-   <tr className="tableRow">
-      <td className="tableCell">{props.direction}</td>
-      <td className="tableCell">{props.publisherName}</td>
-      <td className="tableCell">{props.imps} IMPs</td>
-   </tr>
-);
-SessionSummaryLine.propTypes = {
-   direction: PropTypes.string.isRequired,
-   imps: PropTypes.number.isRequired,
-   num: PropTypes.number.isRequired,
-   publisherName: PropTypes.string.isRequired
-};
+class SessionSummaryLine extends Component {
+   static propTypes = {
+      imps: PropTypes.number.isRequired,
+      teamName: PropTypes.array.isRequired,
+      impDiff: PropTypes.number.isRequired
+   };
+
+   render() {
+      let props = this.props;
+      let impId = numberObjId(props.impDiff);
+      let teamName =
+         props.teamName.length > 0 ? props.teamName.join(", ") : "(opponents)";
+      return (
+         <tr className="tableRow">
+            <td className="tableCell">{teamName}</td>
+            <td className="tableCell impCell" id={impId}>
+               {props.imps} IMP
+            </td>
+         </tr>
+      );
+   }
+}
 
 const SessionSummary = props => (
    <table className="table">
       <tbody className="tableBody">
          <tr className="tableRow">
-            <td className="tableCellBreak" colSpan="3">
+            <td className="tableCell tableCellBreak" colSpan="2">
                Score Summary:
             </td>
          </tr>
-         <SessionSummaryLine
-            num={1}
-            direction={props.scores.publisher1.dirString()}
-            publisherName={props.scores.publisher1.team}
-            imps={props.scores.imps.imps1}
-         />
-         <SessionSummaryLine
-            num={2}
-            direction={props.scores.publisher1.dirString()}
-            publisherName={props.scores.publisher2.team}
-            imps={props.scores.imps.imps2}
-         />
+         {props.impResults.teams.map((teamName, index) => {
+            let impDiff =
+               props.impResults.imps[index] - props.impResults.imps[1 - index];
+            return (
+               <SessionSummaryLine
+                  key={index}
+                  teamName={teamName}
+                  imps={props.impResults.imps[index]}
+                  impDiff={impDiff}
+               />
+            );
+         })}
       </tbody>
    </table>
 );
 
 SessionSummary.propTypes = {
-   scores: PropTypes.object.isRequired
+   impResults: PropTypes.instanceOf(ImpResults).isRequired
 };
 
 class SessionBoards extends Component {
@@ -179,17 +218,15 @@ class SessionBoards extends Component {
          }
          return (
             <CardText>
-               <SessionSummary scores={scores} />
+               <SessionSummary impResults={scores.imps} />
                <table className="table">
                   <tbody className="tableBody">
                      {[...scores.imps.boards.keys()].sort().map(bn => {
-                        let board = scores.imps.boards.get(bn);
                         return (
                            <SessionBoardResults
                               key={bn}
-                              publisher1={scores.publisher1}
-                              publisher2={scores.publisher2}
-                              boardResults={board}
+                              boardResults={scores.imps.boards.get(bn)}
+                              publisherArray={scores.publisher}
                            />
                         );
                      })}
