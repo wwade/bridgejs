@@ -50,26 +50,26 @@ function table2Boards(publisherSeat) {
 }
 
 const team1Ns = {
-   Team: "Alice + Bob",
+   Team: "Alice + Bob (1NS)",
    Id: 1,
    Boards: table1Boards(S)
 };
 
 const team1NsB = {
-   Team: "Bob + Alice",
+   Team: "Bob + Alice (1SN)",
    Id: 2,
    Boards: table1Boards(N)
 };
 
 const team1Ew = {
-   Team: "Harry + Sally",
+   Team: "Harry + Sally (1EW)",
    Id: 3,
    Boards: table2Boards(W)
 };
 
 const team1EwBad = {
    // different results!
-   Team: "Harry + Sally",
+   Team: "Harry + Sally (1BEW)",
    Id: 4,
    Boards: [
       board(1, 3, D, S, 0, W),
@@ -79,54 +79,67 @@ const team1EwBad = {
 };
 
 const team2Ns = {
-   Team: "Jay + Silent Bob",
+   Team: "Jay + Silent Bob (2NS)",
    Id: 5,
    Boards: table2Boards(N)
 };
 
 const team2Ew = {
-   Team: "Blue + Orange",
+   Team: "Blue + Orange (2EW)",
    Id: 6,
    Boards: table1Boards(E)
 };
 
-function validateResults(scores, publisher1, publisher2) {
+function validateResults(scores, publishers, winnerIn, loserIn) {
    expect(scores.conflict.size).toBe(0);
-   expect(scores.publisher1.team).toEqual(publisher1.Team);
-   expect(scores.publisher2.team).toEqual(publisher2.Team);
-   expect(scores.imps.imps1).toEqual(9);
-   expect(scores.imps.imps2).toEqual(10);
-   expect(scores.imps.boards.get(1).imps).toEqual([9, 0]);
-   expect(scores.imps.boards.get(2).imps).toEqual([0, 10]);
-   expect(scores.imps.boards.get(3).imps).toEqual([0, 0]);
+
+   let winner = winnerIn.map(v => v.Team);
+   let loser = loserIn.map(v => v.Team);
+
+   for (var index = 0; index < scores.imps.teams.length; ++index) {
+      var team = scores.imps.teams[index];
+      if (JSON.stringify(winner) === JSON.stringify(team)) {
+         expect(scores.imps.imps[index]).toEqual(10);
+         expect(scores.imps.boards.get(1).imps[index]).toEqual(0);
+         expect(scores.imps.boards.get(2).imps[index]).toEqual(10);
+         expect(scores.imps.teams[index]).toEqual(winner);
+      } else {
+         expect(scores.imps.imps[index]).toEqual(9);
+         expect(scores.imps.boards.get(1).imps[index]).toEqual(9);
+         expect(scores.imps.boards.get(2).imps[index]).toEqual(0);
+         expect(scores.imps.teams[index]).toEqual(loser);
+      }
+      expect(scores.imps.boards.get(3).imps).toEqual([0, 0]);
+   }
+
+   //let actualPubNames = scores.publisher.map(p => p.team);
+   //let expectPubNames = publishers.map(p => p.Team);
+   //expect(actualPubNames).toEqual(expectPubNames);
 }
 
-it("basic, scores entered by each team's n/s pair", () => {
+it("basic, scores entered by each team's NS pair", () => {
    let ss = score([team1Ns, team2Ns]);
-   validateResults(ss, team1Ns, team2Ns);
+   validateResults(ss, [team1Ns, team2Ns], [team2Ns], [team1Ns]);
 });
 
-it("basic, scores entered by each team's e/w pair", () => {
+it("basic, scores entered by each team's EW pair", () => {
    let ss = score([team1Ew, team2Ew]);
-   validateResults(ss, team1Ew, team2Ew);
+   validateResults(ss, [team2Ew, team1Ew], [team2Ew], [team1Ew]);
 });
 
-it("only one team entered results, 1 NS and 1 EW", () => {
+it("basic, only one team entered results, 1 NS and 1 EW", () => {
    let ss = score([team1Ns, team1Ew]);
-   validateResults(ss, team1Ns, team1Ew);
+   validateResults(ss, [team1Ns, team1Ew], [], [team1Ns, team1Ew]);
 });
 
 it("everyone entered results", () => {
    let ss = score([team1Ns, team1Ew, team2Ns, team2Ew]);
-   validateResults(ss, team1Ns, team2Ns);
+   validateResults(ss, null, [team2Ns], [team1Ns]);
 });
 
 it("negative, same n/s pair, both players entered results", () => {
    let ss = score([team1Ns, team1NsB]);
    expect(ss.valid).toBe(false);
-   expect(ss.conflict.size).toBe(0);
-   expect(ss.imps.imps1).toEqual(0);
-   expect(ss.imps.imps2).toEqual(0);
 });
 
 //it("one set of results is missing a board", () => {
@@ -137,9 +150,11 @@ it("negative, same n/s pair, both players entered results", () => {
 //
 
 function impCheck(val, expImps) {
-   expect(new Results.ImpResults().imps(val)).toEqual(expImps);
+   expect(new Results.ImpResults().calculateImps(val)).toEqual(expImps);
    if (expImps) {
-      expect(new Results.ImpResults().imps(-1 * val)).toEqual(-1 * expImps);
+      expect(new Results.ImpResults().calculateImps(-1 * val)).toEqual(
+         -1 * expImps
+      );
    }
 }
 

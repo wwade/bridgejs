@@ -2,17 +2,18 @@ import * as Data from "../model/Data";
 const assert = require("assert");
 
 export class BoardResults {
-   constructor(boardNum, imps1, imps2, board1, board2) {
+   constructor(boardNum, imps, boards, publishers) {
       this.boardNum = boardNum;
-      this.imps = [imps1, imps2];
-      this.boards = [board1, board2];
+      this.imps = imps;
+      this.boards = boards;
+      this.publishers = publishers;
    }
 }
 
 export class ImpResults {
    constructor() {
-      this.imps1 = 0;
-      this.imps2 = 0;
+      this.imps = [0, 0];
+      this.teams = null;
       this.boards = new Map();
    }
 
@@ -99,7 +100,7 @@ export class ImpResults {
       }
    }
 
-   imps(diff) {
+   calculateImps(diff) {
       if (diff < 0) {
          return -1 * this.absImps(-1 * diff);
       } else {
@@ -107,35 +108,37 @@ export class ImpResults {
       }
    }
 
-   add(board1, board2, pos1, pos2) {
-      let team1Score = board1.score();
-      let team2Score = board2.score();
-      if (pos1 === Data.ew) {
-         team1Score = -1 * team1Score;
-      }
-      if (pos2 === Data.ew) {
-         team2Score = -1 * team2Score;
+   add(boardArray, publisherArray) {
+      let scores = boardArray.map(b => b.score());
+      let posArray = publisherArray.map(p => p.publisherPosition());
+      let teams = [[], []];
+      for (var idx of [0, 1]) {
+         if (posArray[idx] === Data.ns) {
+            teams[idx].push(publisherArray[idx].team);
+         } else {
+            teams[1 - idx].push(publisherArray[idx].team);
+         }
       }
 
-      let team1Imps = 0;
-      let team2Imps = 0;
-      if (team1Score > team2Score) {
-         team1Imps = this.imps(team1Score - team2Score);
-         this.imps1 += team1Imps;
+      let imps = [0, 0];
+      if (scores[0] > scores[1]) {
+         imps[0] = this.calculateImps(scores[0] - scores[1]);
+         this.imps[0] += imps[0];
       } else {
-         team2Imps = this.imps(team2Score - team1Score);
-         this.imps2 += team2Imps;
+         imps[1] = this.calculateImps(scores[1] - scores[0]);
+         this.imps[1] += imps[1];
       }
-      assert(board1.boardNumber === board2.boardNumber);
-      let boardNum = board1.boardNumber;
-      let board = new BoardResults(
-         boardNum,
-         team1Imps,
-         team2Imps,
-         board1,
-         board2
-      );
+      assert(boardArray[0].boardNumber === boardArray[1].boardNumber);
+      let boardNum = boardArray[0].boardNumber;
+      let board = new BoardResults(boardNum, imps, publisherArray);
       this.boards.set(boardNum, board);
+      if (this.teams !== null) {
+         var was = JSON.stringify(this.teams);
+         var is = JSON.stringify(teams);
+         assert(was === is, "was: " + was + ", is: " + is);
+      } else {
+         this.teams = teams;
+      }
    }
 }
 
@@ -154,7 +157,7 @@ export class TeamResults {
    compareBoardSets(a, b) {
       let aPos = a.publisherPosition();
       let bPos = b.publisherPosition();
-      if (aPos !== bPos) {
+      if (aPos === bPos) {
          let aKey = a.team + a._id;
          let bKey = b.team + b._id;
          return aKey - bKey;
@@ -188,8 +191,7 @@ export class TeamResults {
       var ret = {
          conflict: conflictResults,
          imps: impResults,
-         publisher1: null,
-         publisher2: null,
+         publisher: [null, null],
          valid: false
       };
       var boardSets = this.sessionBoards.boardSets;
@@ -214,16 +216,13 @@ export class TeamResults {
       let iter = uniqueResults.values();
       let boardSet1 = this.getBoardSet(iter.next().value);
       let boardSet2 = this.getBoardSet(iter.next().value);
-      let pos1 = boardSet1.publisherPosition();
-      let pos2 = boardSet2.publisherPosition();
-      ret.publisher1 = boardSet1;
-      ret.publisher2 = boardSet2;
+      ret.publisher = [boardSet1, boardSet2];
       for (let [boardNum, b1] of boardSet1.boards) {
          if (!boardSet2.boards.has(boardNum)) {
             continue;
          }
          let b2 = boardSet2.boards.get(boardNum);
-         impResults.add(b1, b2, pos1, pos2);
+         impResults.add([b1, b2], ret.publisher);
          ret.valid = true;
       }
 
