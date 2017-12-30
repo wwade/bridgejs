@@ -252,6 +252,19 @@ export class BridgeBoardSet {
       );
    }
 
+   dirString() {
+      // E/W or N/S
+      let pos = this.publisherPosition();
+      switch (pos) {
+         case ns:
+            return "N/S";
+         case ew:
+            return "E/W";
+         default:
+            return "N/A";
+      }
+   }
+
    publisherPosition() {
       // Determine if pair sits E/W or N/S.
       let pos = null;

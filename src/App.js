@@ -1,13 +1,9 @@
+import * as Data from "./model/Data";
+import { BoardResults, TeamResults } from "./bridge/Results";
 import { Card, CardText, CardTitle } from "material-ui/Card";
 import { Component } from "react";
 import { HashRouter, Link, Route } from "react-router-dom";
-import {
-   BridgeBoard,
-   BridgeBoardSet,
-   BridgeSession,
-   SessionBoardSets
-} from "./model/Data";
-import { BoardResults, TeamResults } from "./bridge/Results";
+import { Table, TableBody, TableRow, TableRowColumn } from "material-ui/Table";
 import { getBoards } from "./api";
 import AppBar from "./ui/AppBar";
 import suitIcon from "./ui/Icons";
@@ -22,7 +18,7 @@ import lightBaseTheme from "material-ui/styles/baseThemes/lightBaseTheme";
 
 class ContractInfo extends Component {
    static propTypes = {
-      board: PropTypes.instanceOf(BridgeBoard).isRequired
+      board: PropTypes.instanceOf(Data.BridgeBoard).isRequired
    };
 
    trickString(relTricks) {
@@ -40,10 +36,23 @@ class ContractInfo extends Component {
    render() {
       let b = this.props.board;
       if (b.level) {
+         let xStr;
+         switch (b.doubled) {
+            case Data.doubled:
+               xStr = " X";
+               break;
+            case Data.redoubled:
+               xStr = " XX";
+               break;
+            default:
+               xStr = "";
+               break;
+         }
          return (
             <span>
                {b.level}
-               {suitIcon(b.suit)} by {b.declarer}
+               {suitIcon(b.suit)}
+               {xStr} by {b.declarer}
                {", "}
                {this.trickString(b.relativeTricks())} ({b.score()})
             </span>
@@ -54,7 +63,7 @@ class ContractInfo extends Component {
    }
 }
 ContractInfo.propTypes = {
-   board: PropTypes.instanceOf(BridgeBoard).isRequired
+   board: PropTypes.instanceOf(Data.BridgeBoard).isRequired
 };
 
 const SessionBoard = props => (
@@ -68,9 +77,9 @@ const SessionBoard = props => (
    </div>
 );
 SessionBoard.propTypes = {
-   board: PropTypes.instanceOf(BridgeBoard).isRequired,
+   board: PropTypes.instanceOf(Data.BridgeBoard).isRequired,
    imps: PropTypes.number.isRequired,
-   team: PropTypes.instanceOf(BridgeBoardSet).isRequired
+   team: PropTypes.instanceOf(Data.BridgeBoardSet).isRequired
 };
 
 const SessionBoardResults = props => (
@@ -93,18 +102,36 @@ const SessionBoardResults = props => (
 
 SessionBoardResults.propTypes = {
    boardResults: PropTypes.instanceOf(BoardResults).isRequired,
-   team1: PropTypes.instanceOf(BridgeBoardSet),
-   team2: PropTypes.instanceOf(BridgeBoardSet)
+   team1: PropTypes.instanceOf(Data.BridgeBoardSet),
+   team2: PropTypes.instanceOf(Data.BridgeBoardSet)
+};
+
+const SessionSummaryLine = props => (
+   <div>
+      Team {props.num} ({props.direction}): {props.team}, IMPs: {props.imps}
+   </div>
+);
+SessionSummaryLine.propTypes = {
+   direction: PropTypes.string.isRequired,
+   imps: PropTypes.number.isRequired,
+   num: PropTypes.number.isRequired,
+   team: PropTypes.string.isRequired
 };
 
 const SessionSummary = props => (
    <span>
-      <div>
-         Team 1: {props.scores.team1.team}, IMPs: {props.scores.imps.imps1}
-      </div>
-      <div>
-         Team 2: {props.scores.team2.team}, IMPs: {props.scores.imps.imps2}
-      </div>
+      <SessionSummaryLine
+         num={1}
+         direction={props.scores.team1.dirString()}
+         team={props.scores.team1.team}
+         imps={props.scores.imps.imps1}
+      />
+      <SessionSummaryLine
+         num={2}
+         direction={props.scores.team1.dirString()}
+         team={props.scores.team2.team}
+         imps={props.scores.imps.imps2}
+      />
    </span>
 );
 
@@ -114,7 +141,7 @@ SessionSummary.propTypes = {
 
 class SessionBoards extends Component {
    static propTypes = {
-      boards: PropTypes.instanceOf(SessionBoardSets)
+      boards: PropTypes.instanceOf(Data.SessionBoardSets)
    };
 
    render() {
@@ -123,6 +150,9 @@ class SessionBoards extends Component {
       } else {
          let teamRes = new TeamResults(this.props.boards);
          let scores = teamRes.sessionScore();
+         if (!scores.valid) {
+            return "";
+         }
          return React.Children.toArray([
             <CardText key="sessionInfo">
                <SessionSummary scores={scores} />
@@ -161,7 +191,9 @@ class SessionBoardsContainer extends Component {
          if (err) {
             alert(err.message);
          } else {
-            this.setState({ boards: new SessionBoardSets(res.body.BoardSets) });
+            this.setState({
+               boards: new Data.SessionBoardSets(res.body.BoardSets)
+            });
          }
       });
    }
@@ -206,7 +238,7 @@ class SessionCard extends Component {
 
 class SessionCardContainer extends Component {
    static propTypes = {
-      session: PropTypes.instanceOf(BridgeSession),
+      session: PropTypes.instanceOf(Data.BridgeSession),
       sessions: PropTypes.instanceOf(Map),
       match: PropTypes.object
    };
