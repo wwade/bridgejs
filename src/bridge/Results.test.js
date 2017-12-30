@@ -1,7 +1,6 @@
 import * as Data from "../model/Data";
 import * as Results from "./Results";
 
-const C = Data.clubs;
 const D = Data.diamonds;
 const H = Data.hearts;
 const NT = Data.nt;
@@ -35,6 +34,7 @@ function score(boardSets) {
 }
 
 const team1Ns = {
+   // Results must equal team2Ew
    Team: "Alice + Bob",
    Boards: [
       board(1, 4, H, N, 2, S),
@@ -49,6 +49,7 @@ const team1NsB = {
 };
 
 const team1Ew = {
+   // Results must equal team2Ns
    Team: "Harry + Sally",
    Boards: [
       board(1, 3, D, S, 0, W),
@@ -67,6 +68,7 @@ const team1EwBad = {
 };
 
 const team2Ns = {
+   // Results must equal team1Ew
    Team: "Jay + Silent Bob",
    Boards: [
       board(1, 3, D, S, 0, N),
@@ -76,6 +78,7 @@ const team2Ns = {
 };
 
 const team2Ew = {
+   // Results must equal team1Ns
    Team: "Turner + Hooch",
    Boards: [
       board(1, 4, H, N, 2, E),
@@ -103,6 +106,8 @@ it("basic, scores entered by each team's n/s pair", () => {
    expect(haveNs).toBe(2);
    expect(haveEw).toBe(0);
 
+   expect(ss.team1.team).toEqual(team1Ns.Team);
+   expect(ss.team2.team).toEqual(team2Ns.Team);
    expect(ss.imps.imps1).toEqual(9);
    expect(ss.imps.imps2).toEqual(10);
    expect(ss.imps.boards.get(1).imps).toEqual([9, 0]);
@@ -110,7 +115,35 @@ it("basic, scores entered by each team's n/s pair", () => {
    expect(ss.imps.boards.get(3).imps).toEqual([0, 0]);
 });
 
-it("marginal, same n/s pair, both players entered results", () => {
+it("basic, scores entered by each team's e/w pair", () => {
+   let ss = score([team1Ew, team2Ew]);
+   expect(ss.results.size).toBe(2);
+   expect(ss.conflict.size).toBe(0);
+   let haveNs = 0;
+   let haveEw = 0;
+   for (let r of ss.results.values()) {
+      expect(r.publisherInfo.length).toBe(1);
+      if (r.publisherInfo.pos === Data.ew) {
+         haveEw += 1;
+      } else if (r.publisherInfo.pos === Data.nw) {
+         haveNs += 1;
+      } else {
+         assert(false, "invalid publisherInfo.pos" + publisherInfo.pos);
+      }
+   }
+   expect(haveNs).toBe(2);
+   expect(haveEw).toBe(0);
+
+   expect(ss.team1.team).toEqual(team1Ew.Team);
+   expect(ss.team2.team).toEqual(team2Ew.Team);
+   expect(ss.imps.imps1).toEqual(9);
+   expect(ss.imps.imps2).toEqual(10);
+   expect(ss.imps.boards.get(1).imps).toEqual([9, 0]);
+   expect(ss.imps.boards.get(2).imps).toEqual([0, 10]);
+   expect(ss.imps.boards.get(3).imps).toEqual([0, 0]);
+});
+
+it("negative, same n/s pair, both players entered results", () => {
    let ss = score([team1Ns, team1NsB]);
    expect(ss.results.size).toBe(1);
    expect(ss.conflict.size).toBe(0);
@@ -123,14 +156,6 @@ it("marginal, same n/s pair, both players entered results", () => {
 
 it("only one team entered results, 1 NS and 1 EW", () => {
    let ss = score([team1Ns, team1Ew]);
-   expect(ss.results.size).toBe(2);
-   for (let r of ss.results.values()) {
-      expect(r.publisherInfo.length).toBe(1);
-   }
-});
-
-it("only EW pairs entered results", () => {
-   let ss = score([team1Ew, team2Ew]);
    expect(ss.results.size).toBe(2);
    for (let r of ss.results.values()) {
       expect(r.publisherInfo.length).toBe(1);
