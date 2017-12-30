@@ -160,7 +160,8 @@ export class TeamResults {
          conflict: conflictResults,
          imps: impResults,
          team1: null,
-         team2: null
+         team2: null,
+         valid: false
       };
       var boardSets = this.sessionBoards.boardSets;
       for (let boardSet of boardSets) {
@@ -198,6 +199,7 @@ export class TeamResults {
          }
          let b2 = res2Boards.get(boardNum);
          impResults.add(b1, b2, res1.publisherInfo.pos, res2.publisherInfo.pos);
+         ret.valid = true;
       }
 
       return ret;
