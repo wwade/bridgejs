@@ -130,7 +130,7 @@ export class ImpResults {
       }
       assert(boardArray[0].boardNumber === boardArray[1].boardNumber);
       let boardNum = boardArray[0].boardNumber;
-      let board = new BoardResults(boardNum, imps, publisherArray);
+      let board = new BoardResults(boardNum, imps, boardArray, publisherArray);
       this.boards.set(boardNum, board);
       if (this.teams !== null) {
          var was = JSON.stringify(this.teams);
