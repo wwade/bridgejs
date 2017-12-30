@@ -1,9 +1,9 @@
+import "./App.css";
 import * as Data from "./model/Data";
 import { BoardResults, TeamResults } from "./bridge/Results";
 import { Card, CardText, CardTitle } from "material-ui/Card";
 import { Component } from "react";
 import { HashRouter, Link, Route } from "react-router-dom";
-import { Table, TableBody, TableRow, TableRowColumn } from "material-ui/Table";
 import { getBoards } from "./api";
 import AppBar from "./ui/AppBar";
 import suitIcon from "./ui/Icons";
@@ -23,12 +23,12 @@ class ContractInfo extends Component {
 
    trickString(relTricks) {
       if (!relTricks) {
-         return "making";
+         return "made";
       } else {
          if (relTricks > 0) {
-            return "plus " + relTricks;
+            return "+ " + relTricks;
          } else {
-            return "down " + relTricks;
+            return "down " + -1 * relTricks;
          }
       }
    }
@@ -54,7 +54,7 @@ class ContractInfo extends Component {
                {suitIcon(b.suit)}
                {xStr} by {b.declarer}
                {", "}
-               {this.trickString(b.relativeTricks())} ({b.score()})
+               {this.trickString(b.relativeTricks())}
             </span>
          );
       } else {
@@ -66,39 +66,53 @@ ContractInfo.propTypes = {
    board: PropTypes.instanceOf(Data.BridgeBoard).isRequired
 };
 
-const SessionBoard = props => (
-   <div>
-      <div>
-         {props.imps} IMPS for {props.team.team}
-      </div>
-      <div>
-         <ContractInfo board={props.board} />
-      </div>
-   </div>
-);
+class SessionBoard extends Component {
+   render() {
+      let props = this.props;
+      return React.Children.toArray([
+         <tr className="tableRow" key={props.team.team}>
+            <td className="tableCell">
+               <div>{props.team.team}</div>
+               <div>
+                  <ContractInfo board={props.board} />
+               </div>
+            </td>
+            <td className="tableCell">{props.imps} IMPs</td>
+            <td className="tableCell">{props.board.score()}</td>
+         </tr>
+      ]);
+   }
+}
 SessionBoard.propTypes = {
    board: PropTypes.instanceOf(Data.BridgeBoard).isRequired,
    imps: PropTypes.number.isRequired,
    team: PropTypes.instanceOf(Data.BridgeBoardSet).isRequired
 };
 
-const SessionBoardResults = props => (
-   <div>
-      <div>Board {props.boardResults.boardNum}</div>
-      <SessionBoard
-         key={0}
-         board={props.boardResults.boards[0]}
-         imps={props.boardResults.imps[0]}
-         team={props.team1}
-      />
-      <SessionBoard
-         key={1}
-         board={props.boardResults.boards[1]}
-         imps={props.boardResults.imps[1]}
-         team={props.team2}
-      />
-   </div>
-);
+class SessionBoardResults extends Component {
+   render() {
+      let props = this.props;
+      return React.Children.toArray([
+         <tr className="tableRowBreak" key="boardNum">
+            <td className="tableCellBreak" colSpan="3">
+               Board {props.boardResults.boards[0].boardNumber}:
+            </td>
+         </tr>,
+         <SessionBoard
+            key={0}
+            board={props.boardResults.boards[0]}
+            imps={props.boardResults.imps[0]}
+            team={props.team1}
+         />,
+         <SessionBoard
+            key={1}
+            board={props.boardResults.boards[1]}
+            imps={props.boardResults.imps[1]}
+            team={props.team2}
+         />
+      ]);
+   }
+}
 
 SessionBoardResults.propTypes = {
    boardResults: PropTypes.instanceOf(BoardResults).isRequired,
@@ -107,9 +121,11 @@ SessionBoardResults.propTypes = {
 };
 
 const SessionSummaryLine = props => (
-   <div>
-      Team {props.num} ({props.direction}): {props.team}, IMPs: {props.imps}
-   </div>
+   <tr className="tableRow">
+      <td className="tableCell">{props.direction}</td>
+      <td className="tableCell">{props.team}</td>
+      <td className="tableCell">{props.imps} IMPs</td>
+   </tr>
 );
 SessionSummaryLine.propTypes = {
    direction: PropTypes.string.isRequired,
@@ -119,20 +135,27 @@ SessionSummaryLine.propTypes = {
 };
 
 const SessionSummary = props => (
-   <span>
-      <SessionSummaryLine
-         num={1}
-         direction={props.scores.team1.dirString()}
-         team={props.scores.team1.team}
-         imps={props.scores.imps.imps1}
-      />
-      <SessionSummaryLine
-         num={2}
-         direction={props.scores.team1.dirString()}
-         team={props.scores.team2.team}
-         imps={props.scores.imps.imps2}
-      />
-   </span>
+   <table className="table">
+      <tbody className="tableBody">
+         <tr className="tableRow">
+            <td className="tableCellBreak" colSpan="3">
+               Score Summary:
+            </td>
+         </tr>
+         <SessionSummaryLine
+            num={1}
+            direction={props.scores.team1.dirString()}
+            team={props.scores.team1.team}
+            imps={props.scores.imps.imps1}
+         />
+         <SessionSummaryLine
+            num={2}
+            direction={props.scores.team1.dirString()}
+            team={props.scores.team2.team}
+            imps={props.scores.imps.imps2}
+         />
+      </tbody>
+   </table>
 );
 
 SessionSummary.propTypes = {
@@ -154,21 +177,23 @@ class SessionBoards extends Component {
             return "";
          }
          return React.Children.toArray([
-            <CardText key="sessionInfo">
+            <CardText>
                <SessionSummary scores={scores} />
-            </CardText>,
-            <CardText key="boardResults">
-               {[...scores.imps.boards.keys()].sort().map(bn => {
-                  let board = scores.imps.boards.get(bn);
-                  return (
-                     <SessionBoardResults
-                        key={bn}
-                        team1={scores.team1}
-                        team2={scores.team2}
-                        boardResults={board}
-                     />
-                  );
-               })}
+               <table className="table">
+                  <tbody className="tableBody">
+                     {[...scores.imps.boards.keys()].sort().map(bn => {
+                        let board = scores.imps.boards.get(bn);
+                        return (
+                           <SessionBoardResults
+                              key={bn}
+                              team1={scores.team1}
+                              team2={scores.team2}
+                              boardResults={board}
+                           />
+                        );
+                     })}
+                  </tbody>
+               </table>
             </CardText>
          ]);
       }
