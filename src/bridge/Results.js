@@ -144,11 +144,41 @@ export class TeamResults {
       this.sessionBoards = sessionBoardSets;
    }
 
-   addConflict(conflictResults, key, val) {
+   addConflict(conflictResults, key, boardSet) {
       if (!conflictResults.has(key)) {
-         conflictResults.set(key, { teamInfo: [] });
+         conflictResults.set(key, []);
       }
-      conflictResults.get(key).teamInfo.push(val);
+      conflictResults.get(key).push(boardSet);
+   }
+
+   compareBoardSets(a, b) {
+      let aPos = a.publisherPosition();
+      let bPos = b.publisherPosition();
+      if (aPos !== bPos) {
+         let aKey = a.team + a._id;
+         let bKey = b.team + b._id;
+         return aKey - bKey;
+      } else {
+         if (aPos === Data.ns) {
+            return -1;
+         } else {
+            return 1;
+         }
+      }
+   }
+
+   getBoardSet(boardSetArray) {
+      return boardSetArray.sort((a, b) => {
+         return this.compareBoardSets(a, b);
+      })[0];
+   }
+
+   boardSetKey(boards) {
+      let key = [];
+      for (let board of boards.values()) {
+         key.push(board.resultsKey());
+      }
+      return JSON.stringify(key);
    }
 
    sessionScore() {
@@ -156,28 +186,23 @@ export class TeamResults {
       var conflictResults = new Map();
       var impResults = new ImpResults();
       var ret = {
-         results: uniqueResults,
          conflict: conflictResults,
          imps: impResults,
-         team1: null,
-         team2: null,
+         publisher1: null,
+         publisher2: null,
          valid: false
       };
       var boardSets = this.sessionBoards.boardSets;
       for (let boardSet of boardSets) {
-         var key = JSON.stringify([...boardSet.boards.values()]);
+         var key = this.boardSetKey(boardSet.boards);
          if (!uniqueResults.has(key)) {
-            uniqueResults.set(key, {
-               boardSet: boardSet,
-               publisherInfo: []
-            });
+            uniqueResults.set(key, []);
          }
          var pos = boardSet.publisherPosition();
-         var val = { team: boardSet.team, pos: pos };
          if (pos !== null) {
-            uniqueResults.get(key).publisherInfo.push(val);
+            uniqueResults.get(key).push(boardSet);
          } else {
-            this.addConflict(conflictResults, key, val);
+            this.addConflict(conflictResults, key, boardSet);
          }
       }
 
@@ -187,18 +212,18 @@ export class TeamResults {
 
       // Ignore conflicts if we have enough non-conflicting results...
       let iter = uniqueResults.values();
-      let res1 = iter.next().value;
-      let res2 = iter.next().value;
-      let res1Boards = res1.boardSet.boards;
-      let res2Boards = res2.boardSet.boards;
-      ret.team1 = res1.boardSet;
-      ret.team2 = res2.boardSet;
-      for (let [boardNum, b1] of res1Boards) {
-         if (!res2Boards.has(boardNum)) {
+      let boardSet1 = this.getBoardSet(iter.next().value);
+      let boardSet2 = this.getBoardSet(iter.next().value);
+      let pos1 = boardSet1.publisherPosition();
+      let pos2 = boardSet2.publisherPosition();
+      ret.publisher1 = boardSet1;
+      ret.publisher2 = boardSet2;
+      for (let [boardNum, b1] of boardSet1.boards) {
+         if (!boardSet2.boards.has(boardNum)) {
             continue;
          }
-         let b2 = res2Boards.get(boardNum);
-         impResults.add(b1, b2, res1.publisherInfo.pos, res2.publisherInfo.pos);
+         let b2 = boardSet2.boards.get(boardNum);
+         impResults.add(b1, b2, pos1, pos2);
          ret.valid = true;
       }
 

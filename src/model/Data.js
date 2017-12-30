@@ -64,6 +64,18 @@ export class BridgeBoard {
       this.doubled = data.Doubled;
    }
 
+   resultsKey() {
+      // Do not include publisherSeat
+      return [
+         this.boardNumber,
+         this.suit,
+         this.declarer,
+         this.level,
+         this.tricks,
+         this.doubled
+      ];
+   }
+
    vulnerable() {
       let index = (this.boardNumber - 1) % 16;
       switch (index) {
