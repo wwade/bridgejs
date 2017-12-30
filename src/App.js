@@ -86,7 +86,7 @@ ContractInfo.propTypes = {
 class SessionBoard extends Component {
    static propTypes = {
       board: PropTypes.instanceOf(Data.BridgeBoard).isRequired,
-      imps: PropTypes.number.isRequired,
+      imps: PropTypes.number,
       publisher: PropTypes.instanceOf(Data.BridgeBoardSet).isRequired,
       rowNum: PropTypes.number.isRequired
    };
@@ -102,8 +102,15 @@ class SessionBoard extends Component {
          rowClass = "tableRow even";
          cellClass = "tableCell evenCell";
       }
-      let impStr = props.imps ? props.imps + " IMP" : "-";
-      let impCell = <td className={cellClass + " impCell"}>{impStr}</td>;
+      let impCell;
+      if (props.imps !== undefined) {
+         let impStr = props.imps + " IMP";
+         impCell = (
+            <td rowSpan={2} className={cellClass + " impCell"}>
+               {impStr}
+            </td>
+         );
+      }
       return (
          <tr className={rowClass} key={props.rowNum + props.publisher.team}>
             <td className={cellClass}>{props.publisher.dirString()}</td>
@@ -127,6 +134,9 @@ class SessionBoardResults extends Component {
 
    render() {
       let props = this.props;
+      let imps = props.boardResults.imps.reduce((a, b) => {
+         return Math.max(a, b);
+      });
       return React.Children.toArray([
          <tr className="tableRow" key="boardNum">
             <td className="tableCell tableCellBreak" colSpan="3">
@@ -137,14 +147,13 @@ class SessionBoardResults extends Component {
             key={0}
             rowNum={0}
             board={props.boardResults.boards[0]}
-            imps={props.boardResults.imps[0]}
+            imps={imps}
             publisher={props.publisherArray[0]}
          />,
          <SessionBoard
             key={1}
             rowNum={1}
             board={props.boardResults.boards[1]}
-            imps={props.boardResults.imps[1]}
             publisher={props.publisherArray[1]}
          />
       ]);
