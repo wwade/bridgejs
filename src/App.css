@@ -24,7 +24,8 @@
 }
 
 .tableCell {
-   padding-left: 1em;
+   padding-left: 0.75em;
+   padding-right: 0.75em;
    padding-top: 0.25em;
    padding-bottom: 0.25em;
 }
