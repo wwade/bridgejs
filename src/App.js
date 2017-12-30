@@ -67,12 +67,18 @@ ContractInfo.propTypes = {
 };
 
 class SessionBoard extends Component {
+   static propTypes = {
+      board: PropTypes.instanceOf(Data.BridgeBoard).isRequired,
+      imps: PropTypes.number.isRequired,
+      publisher: PropTypes.instanceOf(Data.BridgeBoardSet).isRequired
+   };
+
    render() {
       let props = this.props;
       return React.Children.toArray([
-         <tr className="tableRow" key={props.team.team}>
+         <tr className="tableRow" key={props.publisher.team}>
             <td className="tableCell">
-               <div>{props.team.team}</div>
+               <div>{props.publisher.team}</div>
                <div>
                   <ContractInfo board={props.board} />
                </div>
@@ -83,13 +89,14 @@ class SessionBoard extends Component {
       ]);
    }
 }
-SessionBoard.propTypes = {
-   board: PropTypes.instanceOf(Data.BridgeBoard).isRequired,
-   imps: PropTypes.number.isRequired,
-   team: PropTypes.instanceOf(Data.BridgeBoardSet).isRequired
-};
 
 class SessionBoardResults extends Component {
+   static propTypes = {
+      boardResults: PropTypes.instanceOf(BoardResults).isRequired,
+      publisher1: PropTypes.instanceOf(Data.BridgeBoardSet),
+      publisher2: PropTypes.instanceOf(Data.BridgeBoardSet)
+   };
+
    render() {
       let props = this.props;
       return React.Children.toArray([
@@ -102,28 +109,22 @@ class SessionBoardResults extends Component {
             key={0}
             board={props.boardResults.boards[0]}
             imps={props.boardResults.imps[0]}
-            team={props.team1}
+            publisher={props.publisher1}
          />,
          <SessionBoard
             key={1}
             board={props.boardResults.boards[1]}
             imps={props.boardResults.imps[1]}
-            team={props.team2}
+            publisher={props.publisher2}
          />
       ]);
    }
 }
 
-SessionBoardResults.propTypes = {
-   boardResults: PropTypes.instanceOf(BoardResults).isRequired,
-   team1: PropTypes.instanceOf(Data.BridgeBoardSet),
-   team2: PropTypes.instanceOf(Data.BridgeBoardSet)
-};
-
 const SessionSummaryLine = props => (
    <tr className="tableRow">
       <td className="tableCell">{props.direction}</td>
-      <td className="tableCell">{props.team}</td>
+      <td className="tableCell">{props.publisherName}</td>
       <td className="tableCell">{props.imps} IMPs</td>
    </tr>
 );
@@ -131,7 +132,7 @@ SessionSummaryLine.propTypes = {
    direction: PropTypes.string.isRequired,
    imps: PropTypes.number.isRequired,
    num: PropTypes.number.isRequired,
-   team: PropTypes.string.isRequired
+   publisherName: PropTypes.string.isRequired
 };
 
 const SessionSummary = props => (
@@ -144,14 +145,14 @@ const SessionSummary = props => (
          </tr>
          <SessionSummaryLine
             num={1}
-            direction={props.scores.team1.dirString()}
-            team={props.scores.team1.team}
+            direction={props.scores.publisher1.dirString()}
+            publisherName={props.scores.publisher1.team}
             imps={props.scores.imps.imps1}
          />
          <SessionSummaryLine
             num={2}
-            direction={props.scores.team1.dirString()}
-            team={props.scores.team2.team}
+            direction={props.scores.publisher1.dirString()}
+            publisherName={props.scores.publisher2.team}
             imps={props.scores.imps.imps2}
          />
       </tbody>
@@ -176,7 +177,7 @@ class SessionBoards extends Component {
          if (!scores.valid) {
             return "";
          }
-         return React.Children.toArray([
+         return (
             <CardText>
                <SessionSummary scores={scores} />
                <table className="table">
@@ -186,8 +187,8 @@ class SessionBoards extends Component {
                         return (
                            <SessionBoardResults
                               key={bn}
-                              team1={scores.team1}
-                              team2={scores.team2}
+                              publisher1={scores.publisher1}
+                              publisher2={scores.publisher2}
                               boardResults={board}
                            />
                         );
@@ -195,7 +196,7 @@ class SessionBoards extends Component {
                   </tbody>
                </table>
             </CardText>
-         ]);
+         );
       }
    }
 }
