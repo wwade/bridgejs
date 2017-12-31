@@ -12,15 +12,23 @@
 }
 
 #positive {
-   color: green;
+   /* material-ui green500 */
+   color: #4CAF50;
 }
 
 #negative {
-   color: maroon;
+   /* material-ui red500 */
+   color: #F44336;
 }
 
-.impCell {
-   font-size: 125%;
+
+#team1 {
+   color: blue;
+}
+
+#team2 {
+   /* material-ui cyan500 */
+   color: #00BCD4;
 }
 
 .tableCell {
@@ -34,6 +42,16 @@
    border: none;
    padding-left: 0;
    padding-top: 1em;
+}
+
+.bold {
    font-weight: bold;
+}
+
+.medium {
    font-size: 110%;
+}
+
+.large {
+   font-size: 125%;
 }

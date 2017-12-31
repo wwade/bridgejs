@@ -16,6 +16,8 @@ import darkBaseTheme from "material-ui/styles/baseThemes/darkBaseTheme";
 import getMuiTheme from "material-ui/styles/getMuiTheme";
 import lightBaseTheme from "material-ui/styles/baseThemes/lightBaseTheme";
 
+const assert = require("assert");
+
 function numberObjId(value) {
    let idVal;
    if (value > 0) {
@@ -26,6 +28,17 @@ function numberObjId(value) {
       idVal = "tied";
    }
    return idVal;
+}
+
+function teamIndexElementId(index) {
+   switch (index) {
+      case 0:
+         return "team1";
+      case 1:
+         return "team2";
+      default:
+         assert(false, "invalid team index " + index);
+   }
 }
 
 class ContractInfo extends Component {
@@ -87,40 +100,28 @@ class SessionBoard extends Component {
    static propTypes = {
       board: PropTypes.instanceOf(Data.BridgeBoard).isRequired,
       publisher: PropTypes.instanceOf(Data.BridgeBoardSet).isRequired,
-      rowNum: PropTypes.number.isRequired,
-      imps: PropTypes.number
+      rowNum: PropTypes.number.isRequired
    };
 
    render() {
-      let props = this.props;
       let rowClass;
       let cellClass;
-      if (props.rowNum % 2) {
+      if (this.props.rowNum % 2) {
          rowClass = "tableRow odd";
          cellClass = "tableCell oddCell";
       } else {
          rowClass = "tableRow even";
          cellClass = "tableCell evenCell";
       }
-      let impCell;
-      if (props.imps !== undefined) {
-         let impStr = props.imps + " IMP";
-         impCell = (
-            <td rowSpan={2} className={cellClass + " impCell"}>
-               {impStr}
-            </td>
-         );
-      }
+      let key = this.props.rowNum + this.props.publisher.team;
       return (
-         <tr className={rowClass} key={props.rowNum + props.publisher.team}>
-            <td className={cellClass}>{props.publisher.dirString()}</td>
+         <tr className={rowClass} key={key}>
             <td className={cellClass}>
-               <div>{props.publisher.team}</div>
-               <div>
-                  <ContractInfo board={props.board} />
-               </div>
+               {this.props.publisher.team} ({this.props.publisher.dirString()})
             </td>
-            {impCell}
+            <td className={cellClass}>
+               <ContractInfo board={this.props.board} />
+            </td>
          </tr>
       );
    }
@@ -133,28 +134,36 @@ class SessionBoardResults extends Component {
    };
 
    render() {
-      let props = this.props;
-      let imps = props.boardResults.imps.reduce((a, b) => {
-         return Math.max(a, b);
-      });
+      let imps = this.props.boardResults.imps;
+      let impStr = "-";
+      let impId = "noTeamSpecified";
+      for (let i = 0; i < imps.length; ++i) {
+         if (imps[i] !== 0) {
+            impId = teamIndexElementId(i);
+            impStr = imps[i] + " IMP";
+            break;
+         }
+      }
       return React.Children.toArray([
-         <tr className="tableRow" key="boardNum">
-            <td className="tableCell tableCellBreak" colSpan="3">
-               Board {props.boardResults.boards[0].boardNumber}:
+         <tr className="bold large tableRow" key="boardNum">
+            <td className="tableCell tableCellBreak">
+               Board {this.props.boardResults.boards[0].boardNumber}:
+            </td>
+            <td className="tableCell tableCellBreak" id={impId}>
+               {impStr}
             </td>
          </tr>,
          <SessionBoard
             key={0}
             rowNum={0}
-            board={props.boardResults.boards[0]}
-            imps={imps}
-            publisher={props.publisherArray[0]}
+            board={this.props.boardResults.boards[0]}
+            publisher={this.props.publisherArray[0]}
          />,
          <SessionBoard
             key={1}
             rowNum={1}
-            board={props.boardResults.boards[1]}
-            publisher={props.publisherArray[1]}
+            board={this.props.boardResults.boards[1]}
+            publisher={this.props.publisherArray[1]}
          />
       ]);
    }
@@ -164,19 +173,20 @@ class SessionSummaryLine extends Component {
    static propTypes = {
       imps: PropTypes.number.isRequired,
       teamName: PropTypes.array.isRequired,
-      impDiff: PropTypes.number.isRequired
+      teamIndex: PropTypes.number.isRequired
    };
 
    render() {
-      let props = this.props;
-      let impId = numberObjId(props.impDiff);
       let teamName =
-         props.teamName.length > 0 ? props.teamName.join(", ") : "(opponents)";
+         this.props.teamName.length > 0
+            ? this.props.teamName.join(", ")
+            : "(opponents)";
+      let impId = teamIndexElementId(this.props.teamIndex);
       return (
          <tr className="tableRow">
             <td className="tableCell">{teamName}</td>
-            <td className="tableCell impCell" id={impId}>
-               {props.imps} IMP
+            <td className="bold large tableCell" id={impId}>
+               {this.props.imps} IMP
             </td>
          </tr>
       );
@@ -187,19 +197,17 @@ const SessionSummary = props => (
    <table className="table">
       <tbody className="tableBody">
          <tr className="tableRow">
-            <td className="tableCell tableCellBreak" colSpan="2">
+            <td className="bold large tableCell tableCellBreak" colSpan="2">
                Score Summary:
             </td>
          </tr>
          {props.impResults.teams.map((teamName, index) => {
-            let impDiff =
-               props.impResults.imps[index] - props.impResults.imps[1 - index];
             return (
                <SessionSummaryLine
                   key={index}
                   teamName={teamName}
                   imps={props.impResults.imps[index]}
-                  impDiff={impDiff}
+                  teamIndex={index}
                />
             );
          })}
