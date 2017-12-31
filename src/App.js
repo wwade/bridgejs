@@ -223,7 +223,20 @@ class SessionBoards extends Component {
          let teamRes = new TeamResults(this.props.boards);
          let scores = teamRes.sessionScore();
          if (!scores.valid) {
-            return "";
+            return (
+               <span>
+                  <CardText>
+                     <div className="bold large">No results to display</div>
+                     {this.props.boards.boardSets.map(b => {
+                        return (
+                           <div key={b._id}>
+                              <div>{JSON.stringify(b)}</div>
+                           </div>
+                        );
+                     })}
+                  </CardText>
+               </span>
+            );
          }
          return (
             <CardText>

@@ -276,6 +276,23 @@ export class BridgeBoardSet {
       }
    }
 
+   compare(other) {
+      let aLen = this.boards.length;
+      let bLen = other.boards.length;
+      let aPos = this.publisherPosition();
+      let bPos = other.publisherPosition();
+      if (aLen !== bLen) {
+         return bLen - aLen; // Longer first
+      }
+      if (aPos !== bPos) {
+         return aPos === ns ? -1 : 1; // N/S first
+      }
+      if (this.team !== other.team) {
+         return this.team - other.team;
+      }
+      return this._id - other._id;
+   }
+
    publisherPosition() {
       // Determine if pair sits E/W or N/S.
       let pos = null;
