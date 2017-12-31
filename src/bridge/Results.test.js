@@ -117,10 +117,7 @@ function validateResults(scores, publishers, winnerIn, loserIn) {
       }
       expect(scores.imps.boards.get(3).imps).toEqual([0, 0]);
    }
-
-   //let actualPubNames = scores.publisher.map(p => p.team);
-   //let expectPubNames = publishers.map(p => p.Team);
-   //expect(actualPubNames).toEqual(expectPubNames);
+   // TODO: publisher info is not tested! TODO
 }
 
 it("basic, scores entered by each team's NS pair", () => {
@@ -153,12 +150,20 @@ it("corner, two valid results and with no boards", () => {
    validateResults(ss, [team1Ns, team2Ns], [team2Ns], [team1Ns]);
 });
 
-//it("one set of results is missing a board", () => {
-//});
+it("one set of results is missing a board", () => {
+   let team1NsExtra = team1Ns;
+   team1NsExtra.Boards = table1Boards(S);
+   let extraBoard = board(4, 1, NT, S, 0, S);
+   team1NsExtra.Boards.push(extraBoard);
+   let ss = score([team1NsExtra, team2Ns]);
+   validateResults(ss, [team1Ns, team2Ns], [team2Ns], [team1Ns]);
+   expect(ss.imps.boards.size).toBe(3);
+});
 
-//it("someone entered conflicting results", () => {
-//});
-//
+it("someone entered conflicting results", () => {
+   let ss = score([team1Ns, team2Ns, team1EwBad]);
+   validateResults(ss, [team1Ns, team2Ns], [team2Ns], [team1Ns]);
+});
 
 function impCheck(val, expImps) {
    expect(new Results.ImpResults().calculateImps(val)).toEqual(expImps);
