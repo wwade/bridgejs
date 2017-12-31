@@ -13,8 +13,7 @@ export class BridgeSession {
    }
 
    dateString() {
-      let offset = moment().utcOffset() * 60 * 1000;
-      let date = moment(this.Timestamp - offset);
+      let date = moment(this.Timestamp);
       let hour = date.hour();
       let timeStr;
       if (hour <= 11) {
