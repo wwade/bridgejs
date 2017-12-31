@@ -90,6 +90,12 @@ const team2Ew = {
    Boards: table1Boards(E)
 };
 
+const noBoards = {
+   Team: "Bad Guy",
+   Id: 7,
+   Boards: []
+};
+
 function validateResults(scores, publishers, winnerIn, loserIn) {
    expect(scores.conflict.size).toBe(0);
 
@@ -140,6 +146,11 @@ it("everyone entered results", () => {
 it("negative, same n/s pair, both players entered results", () => {
    let ss = score([team1Ns, team1NsB]);
    expect(ss.valid).toBe(false);
+});
+
+it("corner, two valid results and with no boards", () => {
+   let ss = score([noBoards, team1Ns, team2Ns]);
+   validateResults(ss, [team1Ns, team2Ns], [team2Ns], [team1Ns]);
 });
 
 //it("one set of results is missing a board", () => {

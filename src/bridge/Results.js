@@ -195,8 +195,11 @@ export class TeamResults {
          valid: false
       };
       var boardSets = this.sessionBoards.boardSets;
-      for (let boardSet of boardSets) {
+      for (let boardSet of boardSets.sort((a, b) => a.compare(b))) {
          var key = this.boardSetKey(boardSet.boards);
+         if (boardSet.boards.size === 0) {
+            continue;
+         }
          if (!uniqueResults.has(key)) {
             uniqueResults.set(key, []);
          }
