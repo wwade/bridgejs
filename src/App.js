@@ -86,9 +86,9 @@ ContractInfo.propTypes = {
 class SessionBoard extends Component {
    static propTypes = {
       board: PropTypes.instanceOf(Data.BridgeBoard).isRequired,
-      imps: PropTypes.number,
       publisher: PropTypes.instanceOf(Data.BridgeBoardSet).isRequired,
-      rowNum: PropTypes.number.isRequired
+      rowNum: PropTypes.number.isRequired,
+      imps: PropTypes.number
    };
 
    render() {
