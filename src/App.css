@@ -1,28 +1,57 @@
-.App {
-  text-align: center;
+.table {
+   padding-bottom: 1em;
+   border-collapse: collapse;
 }
 
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 80px;
+.tableRow {
+   padding-bottom: 1em;
 }
 
-.App-header {
-  background-color: #222;
-  height: 150px;
-  padding: 20px;
-  color: white;
+.even, .odd {
+   background: #f2f2f2;
 }
 
-.App-title {
-  font-size: 1.5em;
+#positive {
+   /* material-ui green500 */
+   color: #4CAF50;
 }
 
-.App-intro {
-  font-size: large;
+#negative {
+   /* material-ui red500 */
+   color: #F44336;
 }
 
-@keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+
+#team1 {
+   color: blue;
+}
+
+#team2 {
+   /* material-ui cyan500 */
+   color: #00BCD4;
+}
+
+.tableCell {
+   padding-left: 0.75em;
+   padding-right: 0.75em;
+   padding-top: 0.25em;
+   padding-bottom: 0.25em;
+}
+
+.tableCellBreak {
+   border: none;
+   padding-left: 0;
+   padding-top: 1em;
+}
+
+.bold {
+   font-weight: bold;
+}
+
+.medium {
+   font-size: 110%;
+}
+
+.large {
+   font-size: 125%;
 }
