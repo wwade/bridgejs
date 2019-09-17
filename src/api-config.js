@@ -3,7 +3,7 @@ let backendHost;
 if (process.env.NODE_ENV === "production") {
    backendHost = "http://bridge.trevr.xyz/";
 } else {
-   backendHost = "http://192.168.0.16/";
+   backendHost = "http://localhost/";
 }
 
 export const API_ROOT = `${backendHost}`;
